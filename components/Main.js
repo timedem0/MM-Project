@@ -13,8 +13,9 @@ export default class Main extends React.Component {
       errorMessage: null,
       games: 0, wins: 0, draws: 0,
       searching: 0,
-      choice: 0,
+      // choice: 0,
       opponentFound: null,
+      playing: 0,
     };
   }
 
@@ -49,6 +50,7 @@ export default class Main extends React.Component {
         draws: 0,
         searching: 0,
         choice: 0,
+        playing: 0,
       })
       .catch( (error) => Alert.alert(error) );
   }
@@ -64,6 +66,7 @@ export default class Main extends React.Component {
 
   handleLogout = () => {
     this.stopSearching();
+    this.setState({ opponentFound: null, playing: 0, });
     firebase
       .auth()
       .signOut()
