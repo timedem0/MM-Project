@@ -14,6 +14,7 @@ export default class Main extends React.Component {
       games: 0, wins: 0, draws: 0,
       searching: 0,
       choice: 0,
+      opponentFound: null,
     };
   }
 
@@ -91,6 +92,7 @@ export default class Main extends React.Component {
       .ref('users/' + user.uid)
       .update({ searching: 1 })
       .catch( error => Alert.alert(error) );
+    this.tryFind(user);
   }
 
   stopSearching = () => {
@@ -103,22 +105,41 @@ export default class Main extends React.Component {
       .catch( error => Alert.alert(error) );
   }
 
-  tryFind = () => {
-    const user = this.state.currentUser;
-    firebase
-      .database()
-      .ref('users')
-      .once('value', snapshot => {
-        snapshot.forEach(childSnapshot => {
-          var childKey = childSnapshot.key;
-          var childVal = childSnapshot.val();
-          if (childVal.searching == 1 /*&& childKey != user.uid*/) {
-            console.log(childKey);
-            this.props.navigation.navigate('Game', { data: childKey });
-          }
+  tryFind = (user) => {
+    let timerId = setInterval(() => {
+      console.log('tick');
+      if (this.state.searching == 0) {
+        clearInterval(timerId);
+      } else {
+        firebase
+        .database()
+        .ref('users')
+        .once('value', snapshot => {
+          snapshot.forEach(childSnapshot => {
+            var childKey = childSnapshot.key;
+            var childVal = childSnapshot.val();
+            if (childVal.searching == 1 && childKey != user.uid) {
+              clearInterval(timerId);
+              this.setState({ opponentFound: childKey });
+            }
+          })
         })
-      })
-      .catch( error => Alert.alert(error) );
+        .catch( error => Alert.alert(error) );
+      }
+    }, 2000);
+    /*
+    setTimeout(() => { 
+      clearInterval(timerId);
+      console.log('stop');
+    }, 10000);
+    */
+  }
+
+  startGame = () => {
+    this.stopSearching();
+    const opponentFound = this.state.opponentFound;
+    this.setState({ opponentFound: null });
+    this.props.navigation.navigate('Game', { data: opponentFound });
   }
 
   clearFields = () => {
@@ -128,23 +149,32 @@ export default class Main extends React.Component {
   render() {
     if (this.state.currentUser) {
       const user = this.state.currentUser;
-      const searching = this.state.searching;
+      let searching = this.state.searching;
+      let opponentFound = this.state.opponentFound;
       return (
         <View style={styles.container}>
           <Text>Hi {user.email}!</Text>
-          <Text>You have {this.state.wins} wins.</Text>
-          <Text>Searching status: {this.state.searching}.</Text>
-          <Text> </Text>
-          { searching
-            ? <View>
-                <Button title="Mark as NOT Available" onPress={this.stopSearching} />
-                <Text> </Text>
-                <Button title="Find Opponent" onPress={this.tryFind} />
-              </View>
-            : <Button title="Mark as Available" onPress={this.startSearching} />
-          }
           <Text> </Text>
           <Button title="Logout" onPress={this.handleLogout} />
+          <Text> </Text>
+          <Text>You have {this.state.wins} wins.</Text>
+          <Text>Test searching status: {this.state.searching}.</Text>
+          <Text> </Text>
+          { opponentFound
+            ? <View>
+                <Button title="Start Game!" onPress={this.startGame} />
+                <Text>Game Found</Text>
+              </View>
+            : <View>
+                { searching
+                  ? <View>
+                      <Button title="Stop Searching" onPress={this.stopSearching} />
+                      <Text>Searching for a match...</Text>
+                    </View>
+                  : <Button title="Search an Opponent" onPress={this.startSearching} />
+                }
+              </View>  
+          }
         </View>
       )
     } else {
