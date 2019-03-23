@@ -81,8 +81,7 @@ export default class Game extends React.Component {
 
   endGame = () => {
         
-    // get the player 2 choice or wait until it happens
-    
+    // get the player 2 choice or keep trying, then calculate and update result
     let timerId = setInterval(() => {
       console.log('tick-game');
       if (this.state.gameEnded == 1) {
@@ -93,15 +92,15 @@ export default class Game extends React.Component {
       } else {
         const result = computeResult(this.state.p1Choice, this.state.p2Choice);
         if (result == 'win') {
-          this.setState({ output: 'Congratulations, you Won!' });
+          this.setState({ p1Wins: this.state.p1Wins + 1, output: 'Congratulations, you Won!' });
         } else if (result == 'lose') {
           this.setState({ output: 'Too bad.. you Lost!' });
         } else if (result == 'tie') {
-          this.setState({ output: 'The match ended in a Tie' });
+          this.setState({ p1Draws: this.state.p1Draws + 1, output: 'The match ended in a Tie' });
         } else if (result == 'nuke') {
-          this.setState({ output: 'You are both DEAD!' });
+          this.setState({ p1Draws: this.state.p1Draws + 1, output: 'You are both DEAD!' });
         }
-        this.setState({ gameEnded: 1 })
+        this.setState({ p1Games: this.state.p1Games + 1, gameEnded: 1 });
       }
     }, 1000);
   }
@@ -112,7 +111,7 @@ export default class Game extends React.Component {
     firebase
       .database()
       .ref('users/' + userOne.uid)
-      .update({ playing: 0, choice: '' })
+      .update({ playing: 0, choice: '', games: this.state.p1Games, wins: this.state.p1Wins, draws: this.state.p1Draws })
       .catch( error => Alert.alert(error) );
     this.props.navigation.navigate('Main');
   }
@@ -143,7 +142,7 @@ export default class Game extends React.Component {
         { p2Playing
           ? <View>
               { gameEnded
-                ? <View>
+                ? <View style={{ alignItems: 'center' }}>
                     <Text>Your choice: {this.state.p1Choice} - Opponent choice: {this.state.p2Choice}</Text>
                     <Text>{this.state.output}</Text>
                   </View>
