@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button, Alert, Picker } from 'react-native';
+import { StyleSheet, Text, View, Button, Alert } from 'react-native';
 import * as firebase from 'firebase';
 import Gyro from './Gyro';
 import { computeResult } from './Logic';
@@ -9,9 +9,9 @@ export default class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      p1Email: '', p1Games: 0, p1Wins: 0, p1Draws: 0, p1Choice: '',
-      p2Email: '', p2Games: 0, p2Wins: 0, p2Draws: 0, p2Choice: '',
-      p2Playing: 0, gameEnded: 0, output: '',
+      pOneEmail: '', pOneGames: 0, pOneWins: 0, pOneDraws: 0, pOneChoice: '', pOneRatio: 0,
+      pTwoEmail: '', pTwoGames: 0, pTwoWins: 0, pTwoDraws: 0, pTwoChoice: '', pTwoRatio: 0,
+      pTwoPlaying: 0, gameEnded: 0, output: '',
     };
   }
 
@@ -21,8 +21,8 @@ export default class Game extends React.Component {
     const { navigation } = this.props;
     const userOne = firebase.auth().currentUser;
     const userTwo = navigation.getParam('data', 'NO-ID');
-    this.p1 = firebase.database().ref('/users/' + userOne.uid);
-    this.p2 = firebase.database().ref('/users/' + userTwo);
+    this.pOne = firebase.database().ref('/users/' + userOne.uid);
+    this.pTwo = firebase.database().ref('/users/' + userTwo);
 
     // start the listeners
     this.getUsersData();
@@ -40,17 +40,22 @@ export default class Game extends React.Component {
   }
 
   getUsersData = () => {
-
     // player 1 listener
-    this.p1.on('value', snapshot => {
-      const userOneDetails = snapshot.val();
-      this.setState({ p1Email: userOneDetails.email, p1Games: userOneDetails.games, p1Wins: userOneDetails.wins, p1Draws: userOneDetails.draws, p1Choice: userOneDetails.choice, });
+    this.pOne.on('value', snapshot => {
+      const pOneVal = snapshot.val();
+      this.setState({
+        pOneEmail: pOneVal.email,
+        pOneGames: pOneVal.games, pOneWins: pOneVal.wins, pOneDraws: pOneVal.draws, pOneRatio: ((pOneVal.wins/(pOneVal.games-pOneVal.draws)) * 100).toFixed(2),
+        pOneChoice: pOneVal.choice, 
+      });
     });
-
     // player 2 listener
-    this.p2.on('value', snapshot => {
-      const userTwoDetails = snapshot.val();
-      this.setState({ p2Email: userTwoDetails.email, p2Games: userTwoDetails.games, p2Wins: userTwoDetails.wins, p2Draws: userTwoDetails.draws, p2Choice: userTwoDetails.choice, p2Playing: userTwoDetails.playing, });
+    this.pTwo.on('value', snapshot => {
+      const pTwoVal = snapshot.val();
+      this.setState({
+        pTwoEmail: pTwoVal.email,
+        pTwoGames: pTwoVal.games, pTwoWins: pTwoVal.wins, pTwoDraws: pTwoVal.draws, pTwoRatio: ((pTwoVal.wins/(pTwoVal.games-pTwoVal.draws)) * 100).toFixed(2),
+        pTwoChoice: pTwoVal.choice, pTwoPlaying: pTwoVal.playing, });
     });
   }
 
@@ -64,86 +69,98 @@ export default class Game extends React.Component {
       .catch( error => Alert.alert(error) );
   }
 
-  updateChoice = (choice) => {
-
-    // get player 1 choice, update the state and the database
+  // get player 1 choice, update the state and the database, call for the end game function
+  updateChoice = (choice) => {  
     const userOne = firebase.auth().currentUser;
-    this.setState({ p1Choice: choice });
+    this.setState({ pOneChoice: choice });
     firebase
       .database()
       .ref('users/' + userOne.uid)
       .update({ choice: choice })
       .catch( error => Alert.alert(error) );
-
-    // call for the end game function
     this.endGame();
   }
 
+  // get the player 2 choice or keep trying, then calculate and update result
   endGame = () => {
-        
-    // get the player 2 choice or keep trying, then calculate and update result
     let timerId = setInterval(() => {
       console.log('tick-game');
+      // initiate the try cycle
       if (this.state.gameEnded == 1) {
+        // if game has ended, stop the cycle
         clearInterval(timerId);
         console.log('stop');
-      } else if (this.state.p2Choice == '') {
+      } else if (this.state.pTwoChoice == '') {
+        // zzz
         console.log('waiting for opponent');
       } else {
-        const result = computeResult(this.state.p1Choice, this.state.p2Choice);
+        // call the logic function
+        const result = computeResult(this.state.pOneChoice, this.state.pTwoChoice);
+        // update the state with the results
         if (result == 'win') {
-          this.setState({ p1Wins: this.state.p1Wins + 1, output: 'Congratulations, you Won!' });
+          this.setState({ pOneWins: this.state.pOneWins + 1, output: 'Congratulations, you Won!' });
         } else if (result == 'lose') {
           this.setState({ output: 'Too bad.. you Lost!' });
         } else if (result == 'tie') {
-          this.setState({ p1Draws: this.state.p1Draws + 1, output: 'The match ended in a Tie' });
+          this.setState({ pOneDraws: this.state.pOneDraws + 1, output: 'The match ended in a Tie' });
         } else if (result == 'nuke') {
-          this.setState({ p1Draws: this.state.p1Draws + 1, output: 'You are both DEAD!' });
+          this.setState({ pOneDraws: this.state.pOneDraws + 1, output: 'You are both DEAD!' });
         }
-        this.setState({ p1Games: this.state.p1Games + 1, gameEnded: 1 });
+        // mark the game as ended, so the cycle can stop
+        this.setState({ pOneGames: this.state.pOneGames + 1, gameEnded: 1 });
       }
     }, 1000);
   }
 
-  // database maintenance for clean player exit from game
+  // database update and maintenance for clean player exit from game
   leaveGame = () => {
     const userOne = firebase.auth().currentUser;
     firebase
       .database()
       .ref('users/' + userOne.uid)
-      .update({ playing: 0, choice: '', games: this.state.p1Games, wins: this.state.p1Wins, draws: this.state.p1Draws })
+      .update({ playing: 0, choice: '', games: this.state.pOneGames, wins: this.state.pOneWins, draws: this.state.pOneDraws })
       .catch( error => Alert.alert(error) );
     this.props.navigation.navigate('Main');
   }
 
   // stop the listeners before unmount
   componentWillUnmount() {
-    this.p1.off();
-    this.p2.off();
+    this.pOne.off();
+    this.pTwo.off();
   }
 
   render() {
 
-    const p2Playing = this.state.p2Playing;
+    const pTwoPlaying = this.state.pTwoPlaying;
     const gameEnded = this.state.gameEnded;
+    const pOneEmail = this.state.pOneEmail;
+    const pOneName = pOneEmail.substring(0, pOneEmail.lastIndexOf('@'));
+    const pOneNameToUpperCase = pOneName.charAt(0).toUpperCase() + pOneName.slice(1);
+    const pTwoEmail = this.state.pTwoEmail;
+    const pTwoName = pTwoEmail.substring(0, pTwoEmail.lastIndexOf('@'));
+    const pTwoNameToUpperCase = pTwoName.charAt(0).toUpperCase() + pTwoName.slice(1);
     
     return (
       <View style={styles.container}>
-        <Text>
-          {this.state.p1Email} - {this.state.p1Games} games, {this.state.p1Wins} wins
-        </Text>
+        <Text>{pOneNameToUpperCase}</Text>
+        { this.state.pOneGames
+          ? <Text>{this.state.pOneGames} games, {this.state.pOneRatio}%</Text>
+          : <Text> </Text>
+        }
         <Text>
           - vs -
         </Text>
-        <Text>
-          {this.state.p2Email} - {this.state.p2Games} games, {this.state.p2Wins} wins
-        </Text>
+        <Text>{pTwoNameToUpperCase}</Text>
+        { this.state.pTwoGames
+          ? <Text>{this.state.pTwoGames} games, {this.state.pTwoRatio}%</Text>
+          : <Text> </Text>
+        }
         <Text> </Text>
-        { p2Playing
+        { pTwoPlaying
           ? <View>
               { gameEnded
                 ? <View style={{ alignItems: 'center' }}>
-                    <Text>Your choice: {this.state.p1Choice} - Opponent choice: {this.state.p2Choice}</Text>
+                    <Text>Your choice: {this.state.pOneChoice} - Opponent choice: {this.state.pTwoChoice}</Text>
                     <Text>{this.state.output}</Text>
                   </View>
                 : <View>
