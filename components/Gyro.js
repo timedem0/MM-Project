@@ -34,19 +34,18 @@ export default class Gyro extends React.Component {
 
       // calculate the thresholds for applying the choice
       if (this.state.south >= 10) {
-        this.props.updateChoice(1);
+        this.props.updateChoice('Nuke');
       } else if (this.state.east >= 10) {
-        this.props.updateChoice(2);
+        this.props.updateChoice('Roach');
       } else if (this.state.west >= 10) {
-        this.props.updateChoice(3);
+        this.props.updateChoice('Foot');
       }
     });
   };
 
-  // reset amplitudes and choice, if needed
+  // reset amplitudes, if needed
   reset = () => {
     this.setState({ south: 0, east: 0, west: 0, });
-    this.props.updateChoice(0);
   }
 
   // stop the listener before unmount

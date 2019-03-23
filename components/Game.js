@@ -2,15 +2,16 @@ import React from 'react';
 import { StyleSheet, Text, View, Button, Alert, Picker } from 'react-native';
 import * as firebase from 'firebase';
 import Gyro from './Gyro';
+import { computeResult } from './Logic';
 
 export default class Game extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      p1Email: '', p1Games: 0, p1Wins: 0, p1Draws: 0, p1Choice: 0,
-      p2Email: '', p2Games: 0, p2Wins: 0, p2Draws: 0, p2Choice: 0,
-      p2Playing: 0,
+      p1Email: '', p1Games: 0, p1Wins: 0, p1Draws: 0, p1Choice: '',
+      p2Email: '', p2Games: 0, p2Wins: 0, p2Draws: 0, p2Choice: '',
+      p2Playing: 0, gameEnded: 0, output: '',
     };
   }
 
@@ -63,16 +64,46 @@ export default class Game extends React.Component {
       .catch( error => Alert.alert(error) );
   }
 
-  // get player 1 choice, update the state and the database
   updateChoice = (choice) => {
+
+    // get player 1 choice, update the state and the database
     const userOne = firebase.auth().currentUser;
-    const choiceAsNumber = Number(choice);
-    this.setState({ p1Choice: choiceAsNumber });
+    this.setState({ p1Choice: choice });
     firebase
       .database()
       .ref('users/' + userOne.uid)
-      .update({ choice: choiceAsNumber })
+      .update({ choice: choice })
       .catch( error => Alert.alert(error) );
+
+    // call for the end game function
+    this.endGame();
+  }
+
+  endGame = () => {
+        
+    // get the player 2 choice or wait until it happens
+    
+    let timerId = setInterval(() => {
+      console.log('tick-game');
+      if (this.state.gameEnded == 1) {
+        clearInterval(timerId);
+        console.log('stop');
+      } else if (this.state.p2Choice == '') {
+        console.log('waiting for opponent');
+      } else {
+        const result = computeResult(this.state.p1Choice, this.state.p2Choice);
+        if (result == 'win') {
+          this.setState({ output: 'Congratulations, you Won!' });
+        } else if (result == 'lose') {
+          this.setState({ output: 'Too bad.. you Lost!' });
+        } else if (result == 'tie') {
+          this.setState({ output: 'The match ended in a Tie' });
+        } else if (result == 'nuke') {
+          this.setState({ output: 'You are both DEAD!' });
+        }
+        this.setState({ gameEnded: 1 })
+      }
+    }, 1000);
   }
 
   // database maintenance for clean player exit from game
@@ -81,7 +112,7 @@ export default class Game extends React.Component {
     firebase
       .database()
       .ref('users/' + userOne.uid)
-      .update({ playing: 0, choice: 0 })
+      .update({ playing: 0, choice: '' })
       .catch( error => Alert.alert(error) );
     this.props.navigation.navigate('Main');
   }
@@ -95,22 +126,31 @@ export default class Game extends React.Component {
   render() {
 
     const p2Playing = this.state.p2Playing;
+    const gameEnded = this.state.gameEnded;
     
     return (
       <View style={styles.container}>
         <Text>
-          {this.state.p1Email} - {this.state.p1Games} games, {this.state.p1Wins} wins - choice: {this.state.p1Choice}
+          {this.state.p1Email} - {this.state.p1Games} games, {this.state.p1Wins} wins
         </Text>
         <Text>
           - vs -
         </Text>
         <Text>
-          {this.state.p2Email} - {this.state.p2Games} games, {this.state.p2Wins} wins - choice: {this.state.p2Choice}
+          {this.state.p2Email} - {this.state.p2Games} games, {this.state.p2Wins} wins
         </Text>
         <Text> </Text>
         { p2Playing
           ? <View>
-              <Gyro updateChoice={this.updateChoice} />
+              { gameEnded
+                ? <View>
+                    <Text>Your choice: {this.state.p1Choice} - Opponent choice: {this.state.p2Choice}</Text>
+                    <Text>{this.state.output}</Text>
+                  </View>
+                : <View>
+                    <Gyro updateChoice={this.updateChoice} />
+                  </View>
+              }
             </View>
           : <Text>Opponent is not in the game!</Text>
         }
