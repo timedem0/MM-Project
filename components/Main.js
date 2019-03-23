@@ -92,7 +92,7 @@ export default class Main extends React.Component {
           this.setState({ totalPlaying: (this.state.totalPlaying + 1) }); // number of users playing at the moment
         }
         if (key == this.state.currentUser.uid) {
-          this.setState({ games: data.games, wins: data.wins, draws: data.draws, ratio: ((data.wins/data.games) * 100).toFixed(2), }); // data of current user
+          this.setState({ games: data.games, wins: data.wins, draws: data.draws, ratio: ((data.wins/(data.games-data.draws)) * 100).toFixed(2), }); // data of current user
         }
       })
     })
