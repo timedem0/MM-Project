@@ -85,14 +85,27 @@ export default class Main extends React.Component {
   queryDatabase = () => {
     this.db.on('value', snapshot => {    
       this.setState({ totalPlayers: snapshot.numChildren() }); // total number of users
+      const arrayOfKeysPlaying = []; // empty array to hold the users playing at the moment
       snapshot.forEach(childSnapshot => {
         const key = childSnapshot.key;
         const data = childSnapshot.val();
+        // if user is playing, add him to the array and update the state
         if (data.playing == 1) {
-          this.setState({ totalPlaying: (this.state.totalPlaying + 1) }); // number of users playing at the moment
+          if(arrayOfKeysPlaying.indexOf(key) === -1) { // make sure the key doesn't exist already
+            arrayOfKeysPlaying.push(key);
+          }
+          this.setState({ totalPlaying: arrayOfKeysPlaying.length }); // number of users playing at the moment
         }
+        // if user is not playing anymore, remove him from the array and update the state
+        if (data.playing == 0) {
+          let arrayFiltered = arrayOfKeysPlaying.filter( (value) => {
+              return value != key;
+          })
+          this.setState({ totalPlaying: arrayFiltered.length }); // number of users playing at the moment
+        }
+        // get the data of current user and keep the state updated
         if (key == this.state.currentUser.uid) {
-          this.setState({ games: data.games, wins: data.wins, draws: data.draws, ratio: ((data.wins/(data.games-data.draws)) * 100).toFixed(2), }); // data of current user
+          this.setState({ games: data.games, wins: data.wins, draws: data.draws, ratio: ((data.wins/(data.games-data.draws)) * 100).toFixed(2), });
         }
       })
     })
