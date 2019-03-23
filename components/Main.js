@@ -71,7 +71,7 @@ export default class Main extends React.Component {
       .catch( (error) => this.setState({ errorMessage: error.message }) )
   }
 
-  // logout procedures
+  // logout procedures and state maintenance
   handleLogout = () => {
     this.stopSearching();
     this.setState({ opponentFound: null, playing: 0, });
@@ -83,31 +83,22 @@ export default class Main extends React.Component {
 
   // listen to database changes and update the state
   queryDatabase = () => {
-
-    this.db.on('value', snapshot => {
-
-      // total number of users
-      this.setState({ totalPlayers: snapshot.numChildren() });
-
+    this.db.on('value', snapshot => {    
+      this.setState({ totalPlayers: snapshot.numChildren() }); // total number of users
       snapshot.forEach(childSnapshot => {
-
         const key = childSnapshot.key;
         const data = childSnapshot.val();
-        
-        // number of users playing at the moment
         if (data.playing == 1) {
-          this.setState({ totalPlaying: (this.state.totalPlaying + 1) });
+          this.setState({ totalPlaying: (this.state.totalPlaying + 1) }); // number of users playing at the moment
         }
-
-        // get data of authenticated user
         if (key == this.state.currentUser.uid) {
-          this.setState({ games: data.games, wins: data.wins, draws: data.draws, ratio: ((data.wins/data.games) * 100).toFixed(2), });
+          this.setState({ games: data.games, wins: data.wins, draws: data.draws, ratio: ((data.wins/data.games) * 100).toFixed(2), }); // data of current user
         }
       })
     })
   }
 
-  // start game searching by updating the database
+  // initiate game searching by updating the database and call the main function
   startSearching = () => {
     const user = this.state.currentUser;
     this.setState({ searching: 1 });
@@ -116,7 +107,7 @@ export default class Main extends React.Component {
       .ref('users/' + user.uid)
       .update({ searching: 1 })
       .catch( error => Alert.alert(error) );
-    this.tryFind(user);
+    this.findGame(user);
   }
 
   // stop game searching by updating the database
@@ -130,13 +121,17 @@ export default class Main extends React.Component {
       .catch( error => Alert.alert(error) );
   }
 
-  tryFind = (user) => {
+  // find an opponent
+  findGame = (user) => {
     let searchingUsersArray = [];
+    // initiate the try cycle
     let timerId = setInterval(() => {
       console.log('tick');
       if (this.state.searching == 0) {
+        // if searching is stopped, stop the cycle
         clearInterval(timerId);
       } else {
+        // test if there are other users searching other than the current one
         firebase
         .database()
         .ref('users')
@@ -145,12 +140,14 @@ export default class Main extends React.Component {
             var childKey = childSnapshot.key;
             var childVal = childSnapshot.val();
             if (childVal.searching == 1 && childKey != user.uid) {
+              // add this user id into the array of users searching for a game
               searchingUsersArray.push(childKey);
             }
           })
         })
         .catch( error => Alert.alert(error) );
         if (searchingUsersArray.length > 0) {
+          // stop the cycle, extract a random opponent from the array and update the state
           clearInterval(timerId);
           const item = searchingUsersArray[Math.floor(Math.random()*searchingUsersArray.length)];
           this.setState({ opponentFound: item });
