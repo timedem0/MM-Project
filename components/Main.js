@@ -11,7 +11,7 @@ export default class Main extends React.Component {
       email: '',
       password: '',
       errorMessage: null,
-      games: 0, wins: 0, draws: 0, playing: 0,
+      games: 0, wins: 0, draws: 0, ratio: 0, playing: 0,
       searching: 0,
       opponentFound: null,
       totalPlayers: 0, totalPlaying: 0,
@@ -28,8 +28,8 @@ export default class Main extends React.Component {
 
         // start the listeners
         if (user) {
-          this.userListener = firebase.database().ref('/users/' + user.uid);
-          this.getUserData();
+          this.db = firebase.database().ref('/users/');
+          this.queryDatabase();
         }
     });
   }
@@ -68,7 +68,6 @@ export default class Main extends React.Component {
       .auth()
       .signInWithEmailAndPassword(this.state.email, this.state.password)
       .then( () => this.clearFields() )
-      // .then( () => this.props.navigation.navigate('Main') )
       .catch( (error) => this.setState({ errorMessage: error.message }) )
   }
 
@@ -82,11 +81,29 @@ export default class Main extends React.Component {
       .catch( error => this.setState({ errorMessage: error.message }) )
   }
 
-  // get user data from database and update the state
-  getUserData = () => {
-    this.userListener.on('value', snapshot => {
-      const data = snapshot.val();
-      this.setState({ games: data.games, wins: data.wins, draws: data.draws });
+  // listen to database changes and update the state
+  queryDatabase = () => {
+
+    this.db.on('value', snapshot => {
+
+      // total number of users
+      this.setState({ totalPlayers: snapshot.numChildren() });
+
+      snapshot.forEach(childSnapshot => {
+
+        const key = childSnapshot.key;
+        const data = childSnapshot.val();
+        
+        // number of users playing at the moment
+        if (data.playing == 1) {
+          this.setState({ totalPlaying: (this.state.totalPlaying + 1) });
+        }
+
+        // get data of authenticated user
+        if (key == this.state.currentUser.uid) {
+          this.setState({ games: data.games, wins: data.wins, draws: data.draws, ratio: ((data.wins/data.games) * 100).toFixed(2), });
+        }
+      })
     })
   }
 
@@ -113,8 +130,8 @@ export default class Main extends React.Component {
       .catch( error => Alert.alert(error) );
   }
 
-  // game finding procedures
   tryFind = (user) => {
+    let searchingUsersArray = [];
     let timerId = setInterval(() => {
       console.log('tick');
       if (this.state.searching == 0) {
@@ -128,20 +145,18 @@ export default class Main extends React.Component {
             var childKey = childSnapshot.key;
             var childVal = childSnapshot.val();
             if (childVal.searching == 1 && childKey != user.uid) {
-              clearInterval(timerId);
-              this.setState({ opponentFound: childKey });
+              searchingUsersArray.push(childKey);
             }
           })
         })
         .catch( error => Alert.alert(error) );
+        if (searchingUsersArray.length > 0) {
+          clearInterval(timerId);
+          const item = searchingUsersArray[Math.floor(Math.random()*searchingUsersArray.length)];
+          this.setState({ opponentFound: item });
+        }
       }
     }, 2000);
-    /*
-    setTimeout(() => { 
-      clearInterval(timerId);
-      console.log('stop');
-    }, 10000);
-    */
   }
 
   // prepare for game start and navigate to the game component
@@ -157,9 +172,9 @@ export default class Main extends React.Component {
     this.setState({ email: '', password: '', errorMessage: null, });
   }
 
-  // stop the listeners before unmount
+  // stop the listener before unmount
   componentWillUnmount() {
-    this.userListener.off();
+    this.db.off();
   }
 
   render() {
@@ -168,31 +183,37 @@ export default class Main extends React.Component {
 
       const user = this.state.currentUser.email;
       const name = user.substring(0, user.lastIndexOf('@'));
+      const nameToUpperCase = name.charAt(0).toUpperCase() + name.slice(1);
       const losses = this.state.games - (this.state.wins + this.state.draws);
-      // const ratio =  (this.state.wins/this.state.games) * 100;
       let searching = this.state.searching;
       let opponentFound = this.state.opponentFound;
 
       return (
         <View style={styles.container}>
-          <Text>Hi {name}!</Text>
+          <Text>Hello {nameToUpperCase}!</Text>
           <Text> </Text>
           <Button title="Logout" onPress={this.handleLogout} />
           <Text> </Text>
-          <Text>You have played {this.state.games} games.</Text>
-          <Text>{this.state.wins} wins - {this.state.draws} draws - {losses} losses</Text>
+          <Text>Total games played: {this.state.games}.</Text>
+          { this.state.ratio
+            ? <View style={{ alignItems: 'center' }}>
+                <Text>Your win/loss ratio: {this.state.ratio}%.</Text>
+                <Text>{this.state.wins} wins - {this.state.draws} draws - {losses} losses</Text>
+              </View>
+            : <Text> </Text>
+          }
           <Text> </Text>
-          <Text>There are {this.state.totalPlayers} registered players.</Text>
-          <Text>Out of which {this.state.totalPlaying} playing at the moment.</Text>
+          <Text>There are {this.state.totalPlayers} registered players,</Text>
+          <Text>and {this.state.totalPlaying} are playing at the moment.</Text>
           <Text> </Text>
           { opponentFound
-            ? <View>
+            ? <View style={{ alignItems: 'center' }}>
                 <Button title="Start Game!" onPress={this.startGame} />
                 <Text>Game Found</Text>
               </View>
             : <View>
                 { searching
-                  ? <View>
+                  ? <View style={{ alignItems: 'center' }}>
                       <Button title="Stop Searching" onPress={this.stopSearching} />
                       <Text>Searching for a match...</Text>
                     </View>
