@@ -34,6 +34,14 @@ export default class Main extends React.Component {
     });
   }
 
+  // navbar maintenance
+  static navigationOptions = () => {
+    return {
+      title: 'Mobile Multiplayer Project',
+      headerLeft: null,
+    }
+  }
+
   //  create new user from state data, write to database and clear input fields
   handleSignUp = () => {
     firebase
