@@ -199,10 +199,13 @@ export default class Main extends React.Component {
 
     if (this.state.currentUser) {
 
-      const user = this.state.currentUser.email;
-      const name = user.substring(0, user.lastIndexOf('@'));
+      const name = this.state.currentUser.email.substring(0, this.state.currentUser.email.lastIndexOf('@'));
       const nameToUpperCase = name.charAt(0).toUpperCase() + name.slice(1);
-      const losses = this.state.games - (this.state.wins + this.state.draws);
+      let losses = this.state.games - (this.state.wins + this.state.draws);
+      let ratio = this.state.ratio;
+      if (isNaN(ratio)) {
+        ratio = 0;
+      }
       let searching = this.state.searching;
       let opponentFound = this.state.opponentFound;
 
@@ -215,7 +218,7 @@ export default class Main extends React.Component {
           <Text>Total games played: {this.state.games}.</Text>
           { this.state.ratio
             ? <View style={{ alignItems: 'center' }}>
-                <Text>Your win/loss ratio: {this.state.ratio}%.</Text>
+                <Text>Your win/loss ratio: {ratio}%.</Text>
                 <Text>{this.state.wins} wins - {this.state.draws} draws - {losses} losses</Text>
               </View>
             : <Text> </Text>
