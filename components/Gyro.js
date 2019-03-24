@@ -7,7 +7,7 @@ export default class Gyro extends React.Component {
   state = {
     gyroscopeData: {},
     south: 0, east: 0, west: 0,
-    southColor: 'rgba(155, 225, 155, 0)', eastColor: 'rgba(155, 225, 155, 0)', westColor: 'rgba(155, 225, 155, 0)',
+    southColor: 'rgba(120, 0, 225, 0)', eastColor: 'rgba(120, 0, 225, 0)', westColor: 'rgba(120, 0, 225, 0)',
   };
 
   componentDidMount() {
@@ -28,9 +28,9 @@ export default class Gyro extends React.Component {
       this.state.west = this.state.west - this.state.gyroscopeData.y;
 
       // set the color accordingly
-      this.state.southColor = `rgba(155, 225, 155, ${this.state.south/10})`;
-      this.state.eastColor = `rgba(155, 225, 155, ${this.state.east/10})`;
-      this.state.westColor = `rgba(155, 225, 155, ${this.state.west/10})`;
+      this.state.southColor = `rgba(120, 0, 225, ${this.state.south/10})`;
+      this.state.eastColor = `rgba(120, 0, 225, ${this.state.east/10})`;
+      this.state.westColor = `rgba(120, 0, 225, ${this.state.west/10})`;
 
       // calculate the thresholds for applying the choice
       if (this.state.south >= 10) {
@@ -56,8 +56,26 @@ export default class Gyro extends React.Component {
 
   render() {
 
+    let opponentChoice = this.props.opponentChoice;
+    let opponentColor = '';
+    let opponentStatus= '';
+    if (opponentChoice) {
+      opponentColor = 'rgba(0, 225, 0, 0.2)';
+      opponentStatus = `${this.props.opponentName} has made a choice!`;
+    } else {
+      opponentColor = 'rgba(225, 0, 0, 0.2)';
+      opponentStatus = `${this.props.opponentName} is still thinking..`;
+    }
+
     return (
-      <View>
+      <View style={{ marginTop: 30 }}>
+        
+        <View style={{alignItems: 'center'}}>
+          <Text>{opponentStatus}</Text>
+        </View>
+        <View style={{alignItems: 'center'}}>
+          <View style={[styles.trapezoid, {borderBottomColor: opponentColor, marginTop: -30, transform: [{rotate: '180deg'}]}]}></View>
+        </View>
 
         <View style={styles.shapeContainer}>
           <View style={[styles.trapezoid, {borderBottomColor: this.state.westColor, transform: [{rotate: '90deg'}]}]}><Text>{"\n\n"}FOOT</Text></View>
@@ -79,7 +97,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'stretch',
     justifyContent: 'space-between',
-    marginTop: 50,
   },
   trapezoid: {
     width: 100,

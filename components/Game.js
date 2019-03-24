@@ -32,7 +32,7 @@ export default class Game extends React.Component {
   }
 
   // navbar maintenance
-  static navigationOptions = ({ navigation }) => {
+  static navigationOptions = () => {
     return {
       title: 'Gaming Arena',
       headerLeft: null,
@@ -84,7 +84,7 @@ export default class Game extends React.Component {
   // get the player 2 choice or keep trying, then calculate and update result
   endGame = () => {
     let timerId = setInterval(() => {
-      console.log('tick-game');
+      console.log('tock');
       // initiate the try cycle
       if (this.state.gameEnded == 1) {
         // if game has ended, stop the cycle
@@ -133,11 +133,9 @@ export default class Game extends React.Component {
 
     const pTwoPlaying = this.state.pTwoPlaying;
     const gameEnded = this.state.gameEnded;
-    const pOneEmail = this.state.pOneEmail;
-    const pOneName = pOneEmail.substring(0, pOneEmail.lastIndexOf('@'));
+    const pOneName = this.state.pOneEmail.substring(0, this.state.pOneEmail.lastIndexOf('@'));
     const pOneNameToUpperCase = pOneName.charAt(0).toUpperCase() + pOneName.slice(1);
-    const pTwoEmail = this.state.pTwoEmail;
-    const pTwoName = pTwoEmail.substring(0, pTwoEmail.lastIndexOf('@'));
+    const pTwoName = this.state.pTwoEmail.substring(0, this.state.pTwoEmail.lastIndexOf('@'));
     const pTwoNameToUpperCase = pTwoName.charAt(0).toUpperCase() + pTwoName.slice(1);
     
     return (
@@ -164,7 +162,7 @@ export default class Game extends React.Component {
                     <Text>{this.state.output}</Text>
                   </View>
                 : <View>
-                    <Gyro updateChoice={this.updateChoice} />
+                    <Gyro updateChoice={this.updateChoice} opponentChoice={this.state.pTwoChoice} opponentName={pTwoNameToUpperCase} />
                   </View>
               }
             </View>
