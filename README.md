@@ -2,7 +2,7 @@
 
 ### Status
 
-Work-in-progress. All the main features are working. App not looking pretty. More to add in gameplay.
+Work-in-progress. All the main features are working. App not looking pretty.
 
 ### Description
 
@@ -20,11 +20,12 @@ Statistics for games played, wins, losses and draws will be recorded in each of 
 
 * Firebase Authentication
 * Firebase Real-time Database
-* Gyroscope Component
+* Expo Gyroscope and Audio Components
 * React Native Navigation
 * React Native Elements or some other UI Toolkit
 
 ### Author
 
 Tudor Nica
+
 [timedemo.eu](http://www.timedemo.eu/)
