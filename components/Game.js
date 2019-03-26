@@ -12,15 +12,15 @@ export default class Game extends React.Component {
       pOneEmail: '', pOneGames: 0, pOneWins: 0, pOneDraws: 0, pOneChoice: '', pOneRatio: 0,
       pTwoEmail: '', pTwoGames: 0, pTwoWins: 0, pTwoDraws: 0, pTwoChoice: '', pTwoRatio: 0,
       pTwoPlaying: 0, gameEnded: 0, output: '',
+      nav: this.props.navigation,
     };
   }
 
   componentDidMount() {
 
     // get the users id
-    const { navigation } = this.props;
     const userOne = firebase.auth().currentUser;
-    const userTwo = navigation.getParam('data', 'NO-ID');
+    const userTwo = this.state.nav.getParam('data', 'NO-ID');
     this.pOne = firebase.database().ref('/users/' + userOne.uid);
     this.pTwo = firebase.database().ref('/users/' + userTwo);
 
@@ -83,9 +83,14 @@ export default class Game extends React.Component {
 
   // get the player 2 choice or keep trying, then calculate and update result
   endGame = () => {
+    // fetch the pre-loaded sounds
+    const resultWin = this.state.nav.getParam('resultWin', null);
+    const resultLoss = this.state.nav.getParam('resultLoss', null);
+    const resultDraw = this.state.nav.getParam('resultDraw', null);
+    const resultNuke = this.state.nav.getParam('resultNuke', null);
+    // initiate the try cycle
     let timerId = setInterval(() => {
       console.log('tock');
-      // initiate the try cycle
       if (this.state.gameEnded == 1) {
         // if game has ended, stop the cycle
         clearInterval(timerId);
@@ -99,12 +104,20 @@ export default class Game extends React.Component {
         // update the state with the results
         if (result == 'win') {
           this.setState({ pOneWins: this.state.pOneWins + 1, output: 'Congratulations, you Won!' });
+          resultWin.setPositionAsync(0);
+          resultWin.playAsync();
         } else if (result == 'lose') {
           this.setState({ output: 'Too bad.. you Lost!' });
+          resultLoss.setPositionAsync(0);
+          resultLoss.playAsync();
         } else if (result == 'tie') {
           this.setState({ pOneDraws: this.state.pOneDraws + 1, output: 'The match ended in a Tie' });
+          resultDraw.setPositionAsync(0);
+          resultDraw.playAsync();
         } else if (result == 'nuke') {
           this.setState({ pOneDraws: this.state.pOneDraws + 1, output: 'You are both DEAD!' });
+          resultNuke.setPositionAsync(0);
+          resultNuke.playAsync();
         }
         // mark the game as ended, so the cycle can stop
         this.setState({ pOneGames: this.state.pOneGames + 1, gameEnded: 1 });

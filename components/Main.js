@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TextInput, View, Button, Alert } from 'react-native';
+import { Audio } from 'expo';
 import * as firebase from 'firebase';
 
 export default class Main extends React.Component {
@@ -32,6 +33,9 @@ export default class Main extends React.Component {
           this.queryDatabase();
         }
     });
+
+    // prefetch the sounds
+    this.loadSounds();
   }
 
   // navbar maintenance
@@ -39,6 +43,19 @@ export default class Main extends React.Component {
     return {
       title: 'Mobile Multiplayer Project',
       headerLeft: null,
+    }
+  }
+
+  // async function to pre-load the sounds
+  loadSounds = async () => {
+    try {
+      await gameFound.loadAsync(require('../assets/sounds/game_found.wav'));
+      await resultDraw.loadAsync(require('../assets/sounds/result_draw.wav'));
+      await resultLoss.loadAsync(require('../assets/sounds/result_loss.wav'));
+      await resultNuke.loadAsync(require('../assets/sounds/result_nuke.wav'));
+      await resultWin.loadAsync(require('../assets/sounds/result_win.wav'));  
+    } catch (error) {
+      console.warn(error);
     }
   }
 
@@ -172,17 +189,19 @@ export default class Main extends React.Component {
           clearInterval(timerId);
           const item = searchingUsersArray[Math.floor(Math.random()*searchingUsersArray.length)];
           this.setState({ opponentFound: item });
+          gameFound.setPositionAsync(0);
+          gameFound.playAsync();
         }
       }
-    }, 2000);
+    }, 2500);
   }
 
-  // prepare for game start and navigate to the game component
+  // prepare for game start and navigate to the game component with the required props
   startGame = () => {
     this.stopSearching();
     const opponentFound = this.state.opponentFound;
     this.setState({ opponentFound: null });
-    this.props.navigation.navigate('Game', { data: opponentFound });
+    this.props.navigation.navigate('Game', { data: opponentFound, resultDraw, resultLoss, resultNuke, resultWin });
   }
 
   // clear input fields
@@ -294,3 +313,9 @@ const styles = StyleSheet.create({
     marginTop: 8
   }
 })
+
+const gameFound = new Audio.Sound();
+const resultDraw = new Audio.Sound();
+const resultLoss = new Audio.Sound();
+const resultNuke = new Audio.Sound();
+const resultWin = new Audio.Sound();
