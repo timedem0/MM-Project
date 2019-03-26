@@ -109,7 +109,7 @@ export default class Game extends React.Component {
         // mark the game as ended, so the cycle can stop
         this.setState({ pOneGames: this.state.pOneGames + 1, gameEnded: 1 });
       }
-    }, 1000);
+    }, 2500);
   }
 
   // database update and maintenance for clean player exit from game
