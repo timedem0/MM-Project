@@ -1,6 +1,6 @@
 import React from 'react';
 import { Gyroscope } from 'expo';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet, Text, View, Button, Vibration } from 'react-native';
 
 export default class Gyro extends React.Component {
 
@@ -33,12 +33,18 @@ export default class Gyro extends React.Component {
       this.state.westColor = `rgba(120, 0, 225, ${this.state.west/10})`;
 
       // calculate the thresholds for applying the choice
-      if (this.state.south >= 10) {
+      if (this.state.south >= 6) {
         this.props.updateChoice('Nuke');
-      } else if (this.state.east >= 10) {
+        Vibration.vibrate(200);
+        this.stopGyro();
+      } else if (this.state.east >= 6) {
         this.props.updateChoice('Roach');
-      } else if (this.state.west >= 10) {
+        Vibration.vibrate(200);
+        this.stopGyro();
+      } else if (this.state.west >= 6) {
         this.props.updateChoice('Foot');
+        Vibration.vibrate(200);
+        this.stopGyro();
       }
     });
   };
@@ -48,10 +54,14 @@ export default class Gyro extends React.Component {
     this.setState({ south: 0, east: 0, west: 0, });
   }
 
-  // stop the listener before unmount
-  componentWillUnmount() {
+  // stop the listener on demand
+  stopGyro = () => {
     this.gyro && this.gyro.remove();
     this.gyro = null;
+  }
+
+  componentWillUnmount() {
+    this.stopGyro();
   }
 
   render() {
