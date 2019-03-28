@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button, Alert } from 'react-native';
+import { Text, View, TouchableHighlight } from 'react-native';
 import * as firebase from 'firebase';
 import Gyro from './Gyro';
 import { computeResult } from './Logic';
+import { styles } from '../styles/Styles';
 
 export default class Game extends React.Component {
 
@@ -66,7 +67,7 @@ export default class Game extends React.Component {
       .database()
       .ref('users/' + userOne.uid)
       .update({ playing: 1 })
-      .catch( error => Alert.alert(error) );
+      .catch( error => console.warn(error) );
   }
 
   // get player 1 choice, update the state and the database, call for the end game function
@@ -77,7 +78,7 @@ export default class Game extends React.Component {
       .database()
       .ref('users/' + userOne.uid)
       .update({ choice: choice })
-      .catch( error => Alert.alert(error) );
+      .catch( error => console.warn(error) );
     this.endGame();
   }
 
@@ -132,7 +133,7 @@ export default class Game extends React.Component {
       .database()
       .ref('users/' + userOne.uid)
       .update({ playing: 0, choice: '', games: this.state.pOneGames, wins: this.state.pOneWins, draws: this.state.pOneDraws })
-      .catch( error => Alert.alert(error) );
+      .catch( error => console.warn(error) );
     this.props.navigation.navigate('Main');
   }
 
@@ -153,47 +154,56 @@ export default class Game extends React.Component {
     
     return (
       <View style={styles.container}>
-        <Text>{pOneNameToUpperCase}</Text>
-        { this.state.pOneGames
-          ? <Text>{this.state.pOneGames} games, {this.state.pOneRatio}%</Text>
-          : <Text> </Text>
-        }
-        <Text>
-          - vs -
-        </Text>
-        <Text>{pTwoNameToUpperCase}</Text>
-        { this.state.pTwoGames
-          ? <Text>{this.state.pTwoGames} games, {this.state.pTwoRatio}%</Text>
-          : <Text> </Text>
-        }
-        <Text> </Text>
-        { pTwoPlaying
-          ? <View>
-              { gameEnded
-                ? <View style={{ alignItems: 'center' }}>
-                    <Text>Your choice: {this.state.pOneChoice} - Opponent choice: {this.state.pTwoChoice}</Text>
-                    <Text>{this.state.output}</Text>
-                  </View>
-                : <View>
-                    <Gyro updateChoice={this.updateChoice} opponentChoice={this.state.pTwoChoice} opponentName={pTwoNameToUpperCase} />
-                  </View>
-              }
-            </View>
-          : <Text>Opponent is not in the game!</Text>
-        }
-        <Text> </Text>
-        <Button title="Leave Game" onPress={this.leaveGame} />
+        <View style={styles.matchupContainer}>
+          <View style={styles.playerOneContainer}>
+            <Text style={styles.pageText}>{pOneNameToUpperCase}</Text>
+            { this.state.pOneGames
+              ? <View style={{ alignItems: 'center' }}>
+                  <Text>{this.state.pOneGames} games</Text>
+                  <Text>{this.state.pOneRatio}%</Text>
+                </View>
+              : <View style={{ alignItems: 'center' }}>
+                  <Text>no games yet</Text>
+                </View>
+            }
+          </View>
+          <View style={styles.playerTwoContainer}>
+            <Text style={styles.pageText}>{pTwoNameToUpperCase}</Text>
+            { this.state.pTwoGames
+              ? <View style={{ alignItems: 'center' }}>
+                  <Text>{this.state.pTwoGames} games</Text>
+                  <Text>{this.state.pTwoRatio}%</Text>
+                </View>
+              : <View style={{ alignItems: 'center' }}>
+                  <Text>no games yet</Text>
+                </View>
+            }
+          </View>
+        </View>
+        <View style={styles.gameContainer}>
+          { pTwoPlaying
+            ? <View>
+                { gameEnded
+                  ? <View style={{ alignItems: 'center' }}>
+                      <Text>Your choice: {this.state.pOneChoice}</Text>
+                      <Text>Opponent choice: {this.state.pTwoChoice}</Text>
+                      <Text style={styles.pageText}>{"\n" + this.state.output}</Text>
+                    </View>
+                  : <View style={styles.gyroContainer}>
+                      <Gyro updateChoice={this.updateChoice} opponentChoice={this.state.pTwoChoice} opponentName={pTwoNameToUpperCase} />
+                    </View>
+                }
+              </View>
+            : <View style={styles.errorContainer}>
+                <Text style={styles.pageText}>Opponent is not in the game!</Text>
+              </View>
+          }
+          <Text> </Text>
+          <TouchableHighlight style={[styles.actionButton, styles.quitButton]} onPress={this.leaveGame}>
+            <Text style={styles.actionText}>Leave Game</Text>
+          </TouchableHighlight>
+        </View>
       </View>
     )
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    marginTop: 30,
-    // justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-  }
-})

@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, TextInput, View, Button, Alert } from 'react-native';
+import { Text, TextInput, View, Keyboard, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import { Audio } from 'expo';
 import * as firebase from 'firebase';
+import { styles } from '../styles/Styles';
 
 export default class Main extends React.Component {
 
@@ -84,7 +85,7 @@ export default class Main extends React.Component {
         choice: '',
         playing: 0,
       })
-      .catch( (error) => Alert.alert(error) );
+      .catch( (error) => console.warn(error) );
   }
 
   // login procedures and clear input fields
@@ -144,7 +145,7 @@ export default class Main extends React.Component {
       .database()
       .ref('users/' + user.uid)
       .update({ searching: 1 })
-      .catch( error => Alert.alert(error) );
+      .catch( error => console.warn(error) );
     this.findGame(user);
   }
 
@@ -156,7 +157,7 @@ export default class Main extends React.Component {
       .database()
       .ref('users/' + user.uid)
       .update({ searching: 0 })
-      .catch( error => Alert.alert(error) );
+      .catch( error => console.warn(error) );
   }
 
   // find an opponent
@@ -183,7 +184,7 @@ export default class Main extends React.Component {
             }
           })
         })
-        .catch( error => Alert.alert(error) );
+        .catch( error => console.warn(error) );
         if (searchingUsersArray.length > 0) {
           // stop the cycle, extract a random opponent from the array and update the state
           clearInterval(timerId);
@@ -230,89 +231,103 @@ export default class Main extends React.Component {
 
       return (
         <View style={styles.container}>
-          <Text>Hello {nameToUpperCase}!</Text>
-          <Text> </Text>
-          <Button title="Logout" onPress={this.handleLogout} />
-          <Text> </Text>
-          <Text>Total games played: {this.state.games}.</Text>
-          { this.state.ratio
-            ? <View style={{ alignItems: 'center' }}>
-                <Text>Your win/loss ratio: {ratio}%.</Text>
-                <Text>{this.state.wins} wins - {this.state.draws} draws - {losses} losses</Text>
-              </View>
-            : <Text> </Text>
-          }
-          <Text> </Text>
-          <Text>There are {this.state.totalPlayers} registered players,</Text>
-          <Text>and {this.state.totalPlaying} are playing at the moment.</Text>
-          <Text> </Text>
-          { opponentFound
-            ? <View style={{ alignItems: 'center' }}>
-                <Button title="Start Game!" onPress={this.startGame} />
-                <Text>Game Found</Text>
-              </View>
-            : <View>
-                { searching
-                  ? <View style={{ alignItems: 'center' }}>
-                      <Button title="Stop Searching" onPress={this.stopSearching} />
-                      <Text>Searching for a match...</Text>
-                    </View>
-                  : <Button title="Search an Opponent" onPress={this.startSearching} />
-                }
-              </View>  
-          }
+          <View style={styles.mainTop}>
+            <View style={styles.playerCard}>
+              <Text style={styles.pageText}>Hello {nameToUpperCase}!</Text>
+              <Text> </Text>
+              <TouchableHighlight style={[styles.actionButton, styles.quitButton]} onPress={this.handleLogout}>
+                <Text style={styles.actionText}>Log Out</Text>
+              </TouchableHighlight>
+            </View>
+            <View style={styles.playerStats}>
+              <Text>Games played: {this.state.games}.</Text>
+              { this.state.ratio
+                ? <View style={{ alignItems: 'center' }}>
+                    <Text>Success ratio: {ratio}%.</Text>
+                    <Text>{this.state.wins} wins - {this.state.draws} draws - {losses} losses</Text>
+                  </View>
+                : <Text>No games played yet</Text>
+              }
+            </View>
+          </View>
+          <View style={styles.mainBottom}>
+            <Text>There are {this.state.totalPlayers} registered players,</Text>
+            <Text>and {this.state.totalPlaying} are playing at the moment.</Text>
+            <Text> </Text>
+            { opponentFound
+              ? <View style={{ alignItems: 'center' }}>
+                  <TouchableHighlight style={[styles.gameButton, styles.gameStartButton]} onPress={this.startGame}>
+                    <Text style={styles.textInfo}>Start the Game!</Text>
+                  </TouchableHighlight>
+                  <View style={styles.errorContainer}>
+                    <Text style={styles.pageText}>Game Found</Text>
+                  </View>
+                </View>
+              : <View>
+                  { searching
+                    ? <View style={{ alignItems: 'center' }}>
+                        <TouchableHighlight style={[styles.gameButton, styles.searchStopButton]} onPress={this.stopSearching}>
+                          <Text style={styles.actionText}>Stop searching!</Text>
+                        </TouchableHighlight>
+                        <View style={styles.errorContainer}>
+                          <Text style={styles.textInfo}>Searching for a match...</Text>
+                        </View>
+                      </View>
+                    : <TouchableHighlight style={[styles.gameButton, styles.searchStartButton]} onPress={this.startSearching}>
+                        <Text style={styles.actionText}>Search for a game!</Text>
+                      </TouchableHighlight>
+                  }
+                </View>  
+            }
+          </View>
         </View>
       )
 
     } else {
 
       return (
-        <View style={styles.container}>
-          <Text>Enter Your Account Details</Text>
-          {this.state.errorMessage &&
-            <Text style={{ color: 'red' }}>
-              {this.state.errorMessage}
-            </Text>}
-          <TextInput
-            placeholder="Email"
-            autoCapitalize="none"
-            style={styles.textInput}
-            onChangeText={email => this.setState({ email })}
-            value={this.state.email}
-          />
-          <TextInput
-            secureTextEntry
-            placeholder="Password"
-            autoCapitalize="none"
-            style={styles.textInput}
-            onChangeText={password => this.setState({ password })}
-            value={this.state.password}
-          />
-          <Text> </Text>
-          <Button title="Sign Up" onPress={this.handleSignUp} />
-          <Text> </Text>
-          <Button title="Login" onPress={this.handleLogin} />          
-        </View>
+        <TouchableWithoutFeedback onPress={ () => Keyboard.dismiss() }>
+          <View style={styles.container}>
+            <Text style={styles.pageText}>Enter Your Account Details</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                placeholder="Email"
+                autoCapitalize="none"
+                style={styles.inputText}
+                onChangeText={email => this.setState({ email })}
+                value={this.state.email}
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                secureTextEntry
+                placeholder="Password"
+                autoCapitalize="none"
+                style={styles.inputText}
+                onChangeText={password => this.setState({ password })}
+                value={this.state.password}
+              />
+            </View>
+            <View style={styles.buttonContainer}>
+              <TouchableHighlight style={[styles.actionButton, styles.signupButton]} onPress={this.handleSignUp}>
+                <Text style={styles.actionText}>Sign Up</Text>
+              </TouchableHighlight>
+              <TouchableHighlight style={[styles.actionButton, styles.loginButton]} onPress={this.handleLogin}>
+                <Text style={styles.actionText}>Log In</Text>
+              </TouchableHighlight>
+            </View>
+            <View style={styles.errorContainer}>
+              {this.state.errorMessage &&
+                <Text style={{ color: 'red' }}>
+                  {this.state.errorMessage}
+                </Text>}
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
       )
     }
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    marginTop: 30,
-    // justifyContent: 'center',
-    alignItems: 'center'
-  },
-  textInput: {
-    height: 40,
-    width: '90%',
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginTop: 8
-  }
-})
 
 const gameFound = new Audio.Sound();
 const resultDraw = new Audio.Sound();

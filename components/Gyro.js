@@ -88,9 +88,9 @@ export default class Gyro extends React.Component {
         </View>
 
         <View style={styles.shapeContainer}>
-          <View style={[styles.trapezoid, {borderBottomColor: this.state.westColor, transform: [{rotate: '90deg'}]}]}><Text>{"\n\n"}FOOT</Text></View>
-          <View style={[styles.trapezoid, {borderBottomColor: this.state.southColor, marginTop: 30}]}><Text>{"\n\n"}NUKE</Text></View>
-          <View style={[styles.trapezoid, {borderBottomColor: this.state.eastColor, transform: [{rotate: '270deg'}]}]}><Text>{"\n\n"}ROACH</Text></View>
+          <View style={[styles.trapezoid, {borderBottomColor: this.state.westColor, transform: [{rotate: '90deg'}]}]}><Text>{"\n\n\n"}FOOT</Text></View>
+          <View style={[styles.trapezoid, {borderBottomColor: this.state.southColor, marginTop: 30}]}><Text>{"\n\n\n"}NUKE</Text></View>
+          <View style={[styles.trapezoid, {borderBottomColor: this.state.eastColor, transform: [{rotate: '270deg'}]}]}><Text>{"\n\n\n"}ROACH</Text></View>
         </View>
 
         <View style={{marginTop: 30}}>

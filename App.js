@@ -20,19 +20,26 @@ const MyApp = createStackNavigator(
     Main,
     Game,
   }, {
-    initialRouteName: 'Main'
-  }
+    initialRouteName: 'Main',
+    defaultNavigationOptions: {
+      headerStyle: {
+        backgroundColor: '#00635C',
+      },
+      headerTintColor: '#fff',
+      headerTitleStyle: {
+      },
+    },
+  },
 );
 
 const AppContainer = createAppContainer(MyApp);
 
+// Work around issue `Setting a timer for long time`
+// see: https://github.com/firebase/firebase-js-sdk/issues/97
 
 const _setTimeout = global.setTimeout;
 const _clearTimeout = global.clearTimeout;
 const MAX_TIMER_DURATION_MS = 60 * 1000;
-
-// Work around issue `Setting a timer for long time`
-// see: https://github.com/firebase/firebase-js-sdk/issues/97
 
 const timerFix = {};
 const runTask = (id, fn, ttl, args) => {
