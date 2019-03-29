@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TextInput, View, Keyboard, Image, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
+import { Text, TextInput, View, Keyboard, Image, TouchableHighlight, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
 import { Audio } from 'expo';
 import * as firebase from 'firebase';
 import { styles } from '../styles/Styles';
@@ -17,6 +17,7 @@ export default class Main extends React.Component {
       searching: 0,
       opponentFound: null,
       totalPlayers: 0, totalPlaying: 0,
+      statsLoaded: 0,
     };
   }
 
@@ -117,7 +118,7 @@ export default class Main extends React.Component {
         const data = childSnapshot.val();
         // get the data of current user and keep the state updated
         if (key == user.uid) {
-          this.setState({ games: data.games, wins: data.wins, draws: data.draws, ratio: ((data.wins/(data.games-data.draws)) * 100).toFixed(2), });
+          this.setState({ games: data.games, wins: data.wins, draws: data.draws, ratio: ((data.wins/(data.games-data.draws)) * 100).toFixed(2), statsLoaded: 1, });
         }
         // if user is playing, add him to the array and update the state
         if (data.playing == 1) {
@@ -243,13 +244,20 @@ export default class Main extends React.Component {
               </TouchableHighlight>
             </View>
             <View style={styles.playerStats}>
-              <Text>Games played: {this.state.games}</Text>
-              { this.state.ratio
+              { this.state.statsLoaded
                 ? <View style={{ alignItems: 'center' }}>
-                    <Text>Success ratio: {ratio}%</Text>
-                    <Text>{this.state.wins} wins - {this.state.draws} draws - {losses} losses</Text>
+                    <Text>Games played: {this.state.games}</Text>
+                    { this.state.ratio
+                      ? <View style={{ alignItems: 'center' }}>
+                          <Text>Success ratio: {ratio}%</Text>
+                          <Text>{this.state.wins} wins - {this.state.draws} draws - {losses} losses</Text>
+                        </View>
+                      : <Text>No games played yet</Text>
+                    }
                   </View>
-                : <Text>No games played yet</Text>
+                : <View style={styles.activity}>
+                    <ActivityIndicator size="large" color="black" />
+                  </View>
               }
             </View>
           </View>
@@ -272,8 +280,13 @@ export default class Main extends React.Component {
                         <TouchableHighlight style={[styles.gameButton, styles.searchStopButton]} onPress={this.stopSearching}>
                           <Text style={styles.actionText}>Stop searching!</Text>
                         </TouchableHighlight>
-                        <View style={styles.errorContainer}>
-                          <Text style={styles.textInfo}>Searching for a match...</Text>
+                        <View>
+                          <View style={styles.activity}>
+                            <ActivityIndicator size="large" color="blue" />
+                          </View>
+                          <View style={styles.errorContainer}>
+                            <Text style={styles.textInfo}>Searching for a match...</Text>
+                          </View>
                         </View>
                       </View>
                     : <TouchableHighlight style={[styles.gameButton, styles.searchStartButton]} onPress={this.startSearching}>

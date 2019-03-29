@@ -167,4 +167,8 @@ export const styles = StyleSheet.create({
     marginVertical: 10,
   },
 
+  activity: {
+    marginTop: 8,
+  },
+
 });
