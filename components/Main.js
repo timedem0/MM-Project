@@ -206,6 +206,13 @@ export default class Main extends React.Component {
     this.props.navigation.navigate('Game', { data: opponentFound, resultDraw, resultLoss, resultNuke, resultWin });
   }
 
+  startGameAI = () => {
+    this.stopSearching();
+    const opponentFound = 'KrBjN2nl3NWalwU3OAJdnpaUC5k2';
+    this.setState({ opponentFound: null });
+    this.props.navigation.navigate('Game', { data: opponentFound, resultDraw, resultLoss, resultNuke, resultWin });
+  }
+
   // clear input fields
   clearFields = () => {
     this.setState({ email: '', password: '', errorMessage: null, });
@@ -265,10 +272,16 @@ export default class Main extends React.Component {
             <Text>There are {this.state.totalPlayers} registered players,</Text>
             <Text>and {this.state.totalPlaying} are in a game at the moment.</Text>
             <Text> </Text>
+            <View>
+              <TouchableHighlight style={[styles.gameButton, styles.gameFoundButton]} onPress={this.startGameAI}>
+                <Text style={styles.actionText}>Play against the AI</Text>
+              </TouchableHighlight>
+            </View>
+            <Text> </Text>
             { opponentFound
               ? <View style={{ alignItems: 'center' }}>
-                  <TouchableHighlight style={[styles.gameButton, styles.gameStartButton]} onPress={this.startGame}>
-                    <Text style={styles.textInfo}>Start the Game!</Text>
+                  <TouchableHighlight style={[styles.gameButton, styles.gameFoundButton]} onPress={this.startGame}>
+                    <Text style={styles.actionText}>Start the Game!</Text>
                   </TouchableHighlight>
                   <View style={styles.errorContainer}>
                     <Text style={styles.pageText}>Game Found</Text>
@@ -278,7 +291,7 @@ export default class Main extends React.Component {
                   { searching
                     ? <View style={{ alignItems: 'center' }}>
                         <TouchableHighlight style={[styles.gameButton, styles.searchStopButton]} onPress={this.stopSearching}>
-                          <Text style={styles.actionText}>Stop searching!</Text>
+                          <Text style={styles.actionText}>Stop searching</Text>
                         </TouchableHighlight>
                         <View>
                           <View style={styles.activity}>
@@ -290,7 +303,7 @@ export default class Main extends React.Component {
                         </View>
                       </View>
                     : <TouchableHighlight style={[styles.gameButton, styles.searchStartButton]} onPress={this.startSearching}>
-                        <Text style={styles.actionText}>Search for a game!</Text>
+                        <Text style={styles.actionText}>Play against a Human player</Text>
                       </TouchableHighlight>
                   }
                 </View>  

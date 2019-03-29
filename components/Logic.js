@@ -1,7 +1,3 @@
-// 1 = foot
-// 2 = nuke
-// 3 = roach
-
 export function computeResult(player1, player2) {
 
   if ((player1 == player2) && (player1 != 'Nuke')) {

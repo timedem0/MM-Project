@@ -3,6 +3,7 @@ import { Text, View, TouchableHighlight } from 'react-native';
 import * as firebase from 'firebase';
 import Gyro from './Gyro';
 import { computeResult } from './Logic';
+import { getComputerChoice } from './Ai';
 import { styles } from '../styles/Styles';
 
 export default class Game extends React.Component {
@@ -46,7 +47,8 @@ export default class Game extends React.Component {
       const pOneVal = snapshot.val();
       this.setState({
         pOneEmail: pOneVal.email,
-        pOneGames: pOneVal.games, pOneWins: pOneVal.wins, pOneDraws: pOneVal.draws, pOneRatio: ((pOneVal.wins/(pOneVal.games-pOneVal.draws)) * 100).toFixed(2),
+        pOneGames: pOneVal.games, pOneWins: pOneVal.wins, pOneDraws: pOneVal.draws,
+        pOneRatio: ((pOneVal.wins/(pOneVal.games-pOneVal.draws)) * 100).toFixed(2),
         pOneChoice: pOneVal.choice, 
       });
     });
@@ -55,8 +57,14 @@ export default class Game extends React.Component {
       const pTwoVal = snapshot.val();
       this.setState({
         pTwoEmail: pTwoVal.email,
-        pTwoGames: pTwoVal.games, pTwoWins: pTwoVal.wins, pTwoDraws: pTwoVal.draws, pTwoRatio: ((pTwoVal.wins/(pTwoVal.games-pTwoVal.draws)) * 100).toFixed(2),
-        pTwoChoice: pTwoVal.choice, pTwoPlaying: pTwoVal.playing, });
+        pTwoGames: pTwoVal.games, pTwoWins: pTwoVal.wins, pTwoDraws: pTwoVal.draws,
+        pTwoRatio: ((pTwoVal.wins/(pTwoVal.games-pTwoVal.draws)) * 100).toFixed(2),
+      });
+      if (snapshot.key == 'KrBjN2nl3NWalwU3OAJdnpaUC5k2') {
+        this.setState({ pTwoPlaying: 1, pTwoChoice: getComputerChoice() });
+      } else {
+        this.setState({ pTwoPlaying: pTwoVal.playing, pTwoChoice: pTwoVal.choice });
+      }
     });
   }
 
