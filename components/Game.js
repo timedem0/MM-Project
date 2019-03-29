@@ -14,7 +14,7 @@ export default class Game extends React.Component {
       pOneEmail: '', pOneGames: 0, pOneWins: 0, pOneDraws: 0, pOneChoice: '', pOneRatio: 0,
       pTwoEmail: '', pTwoGames: 0, pTwoWins: 0, pTwoDraws: 0, pTwoChoice: '', pTwoRatio: 0,
       pTwoPlaying: 0, gameEnded: 0, output: '',
-      nav: this.props.navigation,
+      nav: this.props.navigation, againstComputer: false,
     };
   }
 
@@ -60,8 +60,9 @@ export default class Game extends React.Component {
         pTwoGames: pTwoVal.games, pTwoWins: pTwoVal.wins, pTwoDraws: pTwoVal.draws,
         pTwoRatio: ((pTwoVal.wins/(pTwoVal.games-pTwoVal.draws)) * 100).toFixed(2),
       });
+      // check if playing against computer or human opponents
       if (snapshot.key == 'KrBjN2nl3NWalwU3OAJdnpaUC5k2') {
-        this.setState({ pTwoPlaying: 1, pTwoChoice: getComputerChoice() });
+        this.setState({ pTwoPlaying: 1, pTwoChoice: getComputerChoice(), againstComputer: true });
       } else {
         this.setState({ pTwoPlaying: pTwoVal.playing, pTwoChoice: pTwoVal.choice });
       }
@@ -112,24 +113,28 @@ export default class Game extends React.Component {
         const result = computeResult(this.state.pOneChoice, this.state.pTwoChoice);
         // update the state with the results
         if (result == 'win') {
-          this.setState({ pOneWins: this.state.pOneWins + 1, output: 'Congratulations, you Won!' });
+          this.setState({ pOneWins: this.state.pOneWins + 1, output: 'Congratulations, you Won!', });
           resultWin.setPositionAsync(0);
           resultWin.playAsync();
         } else if (result == 'lose') {
-          this.setState({ output: 'Too bad.. you Lost!' });
+          this.setState({ pTwoWins: this.state.pTwoWins + 1, output: 'Too bad.. you Lost!', });
           resultLoss.setPositionAsync(0);
           resultLoss.playAsync();
         } else if (result == 'tie') {
-          this.setState({ pOneDraws: this.state.pOneDraws + 1, output: 'The match ended in a Tie' });
+          this.setState({ pOneDraws: this.state.pOneDraws + 1, pTwoDraws: this.state.pTwoDraws + 1, output: 'The match ended in a Draw.', });
           resultDraw.setPositionAsync(0);
           resultDraw.playAsync();
         } else if (result == 'nuke') {
-          this.setState({ pOneDraws: this.state.pOneDraws + 1, output: 'You are both DEAD!' });
+          this.setState({ output: 'You are both DEAD!', });
           resultNuke.setPositionAsync(0);
           resultNuke.playAsync();
         }
-        // mark the game as ended, so the cycle can stop
-        this.setState({ pOneGames: this.state.pOneGames + 1, gameEnded: 1 });
+        // update stats and mark the game as ended, so the cycle can stop
+        this.setState({ 
+          gameEnded: 1,
+          pOneGames: this.state.pOneGames + 1, pOneRatio: ((this.state.pOneWins/(this.state.pOneGames + 1 - this.state.pOneDraws)) * 100).toFixed(2),
+          pTwoGames: this.state.pTwoGames + 1, pTwoRatio: ((this.state.pTwoWins/(this.state.pTwoGames + 1 - this.state.pTwoDraws)) * 100).toFixed(2),
+        });
       }
     }, 2500);
   }
@@ -142,6 +147,16 @@ export default class Game extends React.Component {
       .ref('users/' + userOne.uid)
       .update({ playing: 0, choice: '', games: this.state.pOneGames, wins: this.state.pOneWins, draws: this.state.pOneDraws })
       .catch( error => console.warn(error) );
+    // update the computer statistics, if necessary
+    if (this.state.againstComputer) {
+      firebase
+        .database()
+        .ref('users/KrBjN2nl3NWalwU3OAJdnpaUC5k2')
+        .update({ games: this.state.pTwoGames, wins: this.state.pTwoWins, draws: this.state.pTwoDraws })
+        .catch( error => console.warn(error) );
+      this.setState({ againstComputer: false });
+    }
+    // back to main page
     this.props.navigation.navigate('Main');
   }
 
@@ -159,6 +174,14 @@ export default class Game extends React.Component {
     const pOneNameToUpperCase = pOneName.charAt(0).toUpperCase() + pOneName.slice(1);
     const pTwoName = this.state.pTwoEmail.substring(0, this.state.pTwoEmail.lastIndexOf('@'));
     const pTwoNameToUpperCase = pTwoName.charAt(0).toUpperCase() + pTwoName.slice(1);
+    let pOneRatio = this.state.pOneRatio;
+    if (isNaN(pOneRatio)) {
+      pOneRatio = 0;
+    };
+    let pTwoRatio = this.state.pTwoRatio;
+    if (isNaN(pTwoRatio)) {
+      pTwoRatio = 0;
+    };
     
     return (
       <View style={styles.container}>
@@ -172,11 +195,11 @@ export default class Game extends React.Component {
             { this.state.pOneGames
               ? <View style={{ alignItems: 'center' }}>
                   <Text>{this.state.pOneGames} games</Text>
-                  <Text>{this.state.pOneRatio}%</Text>
+                  <Text>{pOneRatio}%</Text>
                 </View>
               : <View style={{ alignItems: 'center' }}>
-                  <Text>0 games</Text>
-                  <Text>0%</Text>
+                  <Text>No games</Text>
+                  <Text>{pOneRatio}%</Text>
                 </View>
             }
           </View>
@@ -189,11 +212,11 @@ export default class Game extends React.Component {
             { this.state.pTwoGames
               ? <View style={{ alignItems: 'center' }}>
                   <Text>{this.state.pTwoGames} games</Text>
-                  <Text>{this.state.pTwoRatio}%</Text>
+                  <Text>{pTwoRatio}%</Text>
                 </View>
               : <View style={{ alignItems: 'center' }}>
-                  <Text>0 games</Text>
-                  <Text>0%</Text>
+                  <Text>No games</Text>
+                  <Text>{pTwoRatio}%</Text>
                 </View>
             }
           </View>
