@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, TouchableHighlight } from 'react-native';
+import { Text, View, Image, TouchableHighlight } from 'react-native';
 import * as firebase from 'firebase';
 import Gyro from './Gyro';
 import { computeResult } from './Logic';
@@ -165,25 +165,35 @@ export default class Game extends React.Component {
         <View style={styles.matchupContainer}>
           <View style={styles.playerOneContainer}>
             <Text style={styles.pageText}>{pOneNameToUpperCase}</Text>
+            <Image
+              style={styles.avatarMain}
+              source={{uri: `https://api.adorable.io/avatars/100/${this.state.pOneEmail}.png`}}
+            />
             { this.state.pOneGames
               ? <View style={{ alignItems: 'center' }}>
                   <Text>{this.state.pOneGames} games</Text>
                   <Text>{this.state.pOneRatio}%</Text>
                 </View>
               : <View style={{ alignItems: 'center' }}>
-                  <Text>no games yet</Text>
+                  <Text>0 games</Text>
+                  <Text>0%</Text>
                 </View>
             }
           </View>
           <View style={styles.playerTwoContainer}>
             <Text style={styles.pageText}>{pTwoNameToUpperCase}</Text>
+            <Image
+              style={styles.avatarMain}
+              source={{uri: `https://api.adorable.io/avatars/100/${this.state.pTwoEmail}.png`}}
+            />
             { this.state.pTwoGames
               ? <View style={{ alignItems: 'center' }}>
                   <Text>{this.state.pTwoGames} games</Text>
                   <Text>{this.state.pTwoRatio}%</Text>
                 </View>
               : <View style={{ alignItems: 'center' }}>
-                  <Text>no games yet</Text>
+                  <Text>0 games</Text>
+                  <Text>0%</Text>
                 </View>
             }
           </View>
@@ -192,10 +202,18 @@ export default class Game extends React.Component {
           { pTwoPlaying
             ? <View>
                 { gameEnded
-                  ? <View style={{ alignItems: 'center' }}>
-                      <Text>Your choice: {this.state.pOneChoice}</Text>
-                      <Text>Opponent choice: {this.state.pTwoChoice}</Text>
-                      <Text style={styles.pageText}>{"\n" + this.state.output}</Text>
+                  ? <View>
+                      <View style={styles.resultsContainer}>
+                        <View style={styles.playerOneContainer}>
+                          <Text style={styles.pageText}>{this.state.pOneChoice}</Text>
+                        </View>
+                        <View style={styles.playerTwoContainer}>
+                          <Text style={styles.pageText}>{this.state.pTwoChoice}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.errorContainer}>
+                        <Text style={styles.pageText}>{this.state.output}</Text>
+                      </View>
                     </View>
                   : <View style={styles.gyroContainer}>
                       <Gyro updateChoice={this.updateChoice} opponentChoice={this.state.pTwoChoice} opponentName={pTwoNameToUpperCase} />

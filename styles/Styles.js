@@ -4,7 +4,7 @@ export const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    paddingTop: 30,
+    paddingTop: 15,
     backgroundColor: '#D7EBE7',
     alignItems: 'center',
   },
@@ -40,7 +40,7 @@ export const styles = StyleSheet.create({
   },
 
   actionButton: {
-    height: 45,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
     width: 120,
@@ -63,10 +63,10 @@ export const styles = StyleSheet.create({
   },
 
   gameButton: {
-    height: 45,
+    height: 35,
     justifyContent: 'center',
     alignItems: 'center',
-    width: 240,
+    width: 260,
     borderRadius: 15,
     elevation: 5,
   },
@@ -90,7 +90,7 @@ export const styles = StyleSheet.create({
 
   errorContainer: {
     backgroundColor: 'rgba(0,0,0,.05)',
-    marginTop: 20,
+    marginTop: 10,
     borderRadius: 5,
     paddingHorizontal: 4,
   },
@@ -102,28 +102,34 @@ export const styles = StyleSheet.create({
   },
 
   matchupContainer: {
-    flex: 2,
+    flex: 4,
     flexDirection: 'row',
+    marginTop: 20,
     marginBottom: 20,
     alignItems: 'center',
   },
 
   playerOneContainer: {
-    backgroundColor: 'skyblue',
+    backgroundColor: 'rgba(120, 0, 225, 0.2)',
     padding: 10,
-    width: '40%',
-    height: 200,
+    width: 150,
+    alignItems: 'center',
   },
 
   playerTwoContainer: {
     backgroundColor: 'lightgrey',
     padding: 10,
-    width: '40%',
-    height: 200,
+    width: 150,
+    alignItems: 'center',
   },
 
   gameContainer: {
     flex: 6,
+    alignItems: 'center',
+  },
+
+  resultsContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
 
@@ -152,7 +158,7 @@ export const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 15,
     elevation: 5,
-    width: '70%',
+    width: '80%',
     marginTop: 10,
   },
 

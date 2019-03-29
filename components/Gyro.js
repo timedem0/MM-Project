@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   trapezoid: {
-    width: 100,
+    width: 110,
     height: 0,
     borderBottomWidth: 50,
     borderBottomColor: 'red',
