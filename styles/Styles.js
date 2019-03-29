@@ -128,33 +128,43 @@ export const styles = StyleSheet.create({
   },
 
   mainTop: {
-    flex: 6,
+    flex: 5,
     width: '90%',
+    alignItems: 'center',
   },
 
   mainBottom: {
-    flex: 4,
+    flex: 5,
     width: '90%',
     alignItems: 'center',
     marginTop: 20,
   },
 
   playerCard: {
-    flex: 7,
+    flex: 6,
     alignItems: 'center',
   },
 
   playerStats: {
-    flex: 3,
+    flex: 2,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'white',
     borderRadius: 15,
     elevation: 5,
+    width: '70%',
+    marginTop: 10,
   },
 
   textInfo: {
     fontSize: 16,
-  }
+  },
+
+  avatarMain: {
+    width: 100,
+    height: 100,
+    borderRadius: 15,
+    marginVertical: 10,
+  },
 
 });

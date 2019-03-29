@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TextInput, View, Keyboard, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
+import { Text, TextInput, View, Keyboard, Image, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import { Audio } from 'expo';
 import * as firebase from 'firebase';
 import { styles } from '../styles/Styles';
@@ -234,16 +234,19 @@ export default class Main extends React.Component {
           <View style={styles.mainTop}>
             <View style={styles.playerCard}>
               <Text style={styles.pageText}>Hello {nameToUpperCase}!</Text>
-              <Text> </Text>
+              <Image
+                style={styles.avatarMain}
+                source={{uri: `https://api.adorable.io/avatars/120/${this.state.currentUser.email}.png`}}
+              />
               <TouchableHighlight style={[styles.actionButton, styles.quitButton]} onPress={this.handleLogout}>
                 <Text style={styles.actionText}>Log Out</Text>
               </TouchableHighlight>
             </View>
             <View style={styles.playerStats}>
-              <Text>Games played: {this.state.games}.</Text>
+              <Text>Games played: {this.state.games}</Text>
               { this.state.ratio
                 ? <View style={{ alignItems: 'center' }}>
-                    <Text>Success ratio: {ratio}%.</Text>
+                    <Text>Success ratio: {ratio}%</Text>
                     <Text>{this.state.wins} wins - {this.state.draws} draws - {losses} losses</Text>
                   </View>
                 : <Text>No games played yet</Text>
@@ -252,7 +255,7 @@ export default class Main extends React.Component {
           </View>
           <View style={styles.mainBottom}>
             <Text>There are {this.state.totalPlayers} registered players,</Text>
-            <Text>and {this.state.totalPlaying} are playing at the moment.</Text>
+            <Text>and {this.state.totalPlaying} are in a game at the moment.</Text>
             <Text> </Text>
             { opponentFound
               ? <View style={{ alignItems: 'center' }}>
