@@ -31,7 +31,7 @@ export default class Main extends React.Component {
         // start the listeners
         if (user) {
           this.db = firebase.database().ref('/users/');
-          this.queryDatabase();
+          this.queryDatabase(user);
         }
     });
 
@@ -108,13 +108,17 @@ export default class Main extends React.Component {
   }
 
   // listen to database changes and update the state
-  queryDatabase = () => {
+  queryDatabase = (user) => {
     this.db.on('value', snapshot => {    
       this.setState({ totalPlayers: snapshot.numChildren() }); // total number of users
       const arrayOfKeysPlaying = []; // empty array to hold the users playing at the moment
       snapshot.forEach(childSnapshot => {
         const key = childSnapshot.key;
         const data = childSnapshot.val();
+        // get the data of current user and keep the state updated
+        if (key == user.uid) {
+          this.setState({ games: data.games, wins: data.wins, draws: data.draws, ratio: ((data.wins/(data.games-data.draws)) * 100).toFixed(2), });
+        }
         // if user is playing, add him to the array and update the state
         if (data.playing == 1) {
           if(arrayOfKeysPlaying.indexOf(key) === -1) { // make sure the key doesn't exist already
@@ -128,10 +132,6 @@ export default class Main extends React.Component {
               return value != key;
           })
           this.setState({ totalPlaying: arrayFiltered.length }); // number of users playing at the moment
-        }
-        // get the data of current user and keep the state updated
-        if (key == this.state.currentUser.uid) {
-          this.setState({ games: data.games, wins: data.wins, draws: data.draws, ratio: ((data.wins/(data.games-data.draws)) * 100).toFixed(2), });
         }
       })
     })
