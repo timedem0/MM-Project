@@ -2,7 +2,7 @@
 
 ### Status
 
-Work-in-progress. All the main features are working. App not looking pretty.
+All the main features are working. Some small improvements on to-do list.
 
 ### Description
 
@@ -22,7 +22,8 @@ Statistics for games played, wins, losses and draws will be recorded in each of 
 * Firebase Real-time Database
 * Expo Gyroscope and Audio Components
 * React Native Navigation
-* React Native Elements or some other UI Toolkit
+* ~~React Native Elements or some other UI Toolkit~~ Writing my own styling, for learning purposes
+* Avatar Images provided by [Adorable Avatars](http://avatars.adorable.io/)
 
 ### Author
 
