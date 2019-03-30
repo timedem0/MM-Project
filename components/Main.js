@@ -79,12 +79,9 @@ export default class Main extends React.Component {
       .ref('users/' + user.uid)
       .set({
         email: user.email,
-        games: 0,
-        wins: 0,
-        draws: 0,
-        searching: 0,
-        choice: '',
-        playing: 0,
+        games: 0, wins: 0, draws: 0,
+        nukeCount: 0, footCount: 0, roachCount: 0,
+        searching: 0, playing: 0, choice: '',
       })
       .catch( (error) => console.warn(error) );
   }

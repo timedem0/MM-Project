@@ -13,6 +13,7 @@ export default class Game extends React.Component {
     this.state = {
       pOneEmail: '', pOneGames: 0, pOneWins: 0, pOneDraws: 0, pOneChoice: '', pOneRatio: 0,
       pTwoEmail: '', pTwoGames: 0, pTwoWins: 0, pTwoDraws: 0, pTwoChoice: '', pTwoRatio: 0,
+      pOneNukeCount: 0, pOneFootCount: 0, pOneRoachCount: 0,
       pTwoPlaying: 0, gameEnded: 0, output: '',
       nav: this.props.navigation, againstComputer: false,
     };
@@ -48,6 +49,7 @@ export default class Game extends React.Component {
       this.setState({
         pOneEmail: pOneVal.email,
         pOneGames: pOneVal.games, pOneWins: pOneVal.wins, pOneDraws: pOneVal.draws,
+        pOneNukeCount: pOneVal.nukeCount, pOneFootCount: pOneVal.footCount, pOneRoachCount: pOneVal.roachCount,
         pOneRatio: ((pOneVal.wins/(pOneVal.games-pOneVal.draws)) * 100).toFixed(2),
         pOneChoice: pOneVal.choice, 
       });
@@ -82,11 +84,26 @@ export default class Game extends React.Component {
   // get player 1 choice, update the state and the database, call for the end game function
   updateChoice = (choice) => {  
     const userOne = firebase.auth().currentUser;
-    this.setState({ pOneChoice: choice });
+    let pOneNukeCount = this.state.pOneNukeCount;
+    let pOneFootCount = this.state.pOneFootCount;
+    let pOneRoachCount = this.state.pOneRoachCount;
+    if (choice == 'Nuke') {
+      pOneNukeCount++;
+    } else if (choice == 'Foot') {
+      pOneFootCount++;
+    } else if (choice == 'Roach') {
+      pOneRoachCount++;
+    } else {
+      console.warn('Gyro component not working as expected.');
+    }
+    this.setState({ pOneChoice: choice, pOneNukeCount, pOneFootCount, pOneRoachCount, });
     firebase
       .database()
       .ref('users/' + userOne.uid)
-      .update({ choice: choice })
+      .update({
+        choice: choice,
+        nukeCount: this.state.pOneNukeCount, footCount: this.state.pOneFootCount, roachCount: this.state.pOneRoachCount,
+      })
       .catch( error => console.warn(error) );
     this.endGame();
   }
@@ -136,7 +153,7 @@ export default class Game extends React.Component {
           pTwoGames: this.state.pTwoGames + 1, pTwoRatio: ((this.state.pTwoWins/(this.state.pTwoGames + 1 - this.state.pTwoDraws)) * 100).toFixed(2),
         });
       }
-    }, 2500);
+    }, 1500);
   }
 
   // database update and maintenance for clean player exit from game
@@ -145,14 +162,19 @@ export default class Game extends React.Component {
     firebase
       .database()
       .ref('users/' + userOne.uid)
-      .update({ playing: 0, choice: '', games: this.state.pOneGames, wins: this.state.pOneWins, draws: this.state.pOneDraws })
+      .update({
+        playing: 0, choice: '',
+        games: this.state.pOneGames, wins: this.state.pOneWins, draws: this.state.pOneDraws,
+      })
       .catch( error => console.warn(error) );
     // update the computer statistics, if necessary
     if (this.state.againstComputer) {
       firebase
         .database()
         .ref('users/KrBjN2nl3NWalwU3OAJdnpaUC5k2')
-        .update({ games: this.state.pTwoGames, wins: this.state.pTwoWins, draws: this.state.pTwoDraws })
+        .update({
+          games: this.state.pTwoGames, wins: this.state.pTwoWins, draws: this.state.pTwoDraws,
+        })
         .catch( error => console.warn(error) );
       this.setState({ againstComputer: false });
     }
