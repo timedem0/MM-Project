@@ -66,13 +66,14 @@ export const styles = StyleSheet.create({
     height: 35,
     justifyContent: 'center',
     alignItems: 'center',
-    width: 260,
+    width: 290,
     borderRadius: 15,
     elevation: 5,
   },
 
   gameFoundButton: {
     backgroundColor: 'blue',
+    marginHorizontal: 5,
   },
 
   searchStartButton: {
@@ -81,6 +82,15 @@ export const styles = StyleSheet.create({
 
   searchStopButton: {
     backgroundColor: 'orange',
+  },
+
+  computerButton: {
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 140,
+    borderRadius: 15,
+    elevation: 5,
   },
 
   actionText: {

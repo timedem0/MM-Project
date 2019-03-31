@@ -14,6 +14,7 @@ export default class Main extends React.Component {
       password: '',
       errorMessage: null,
       games: 0, wins: 0, draws: 0, ratio: 0, playing: 0,
+      nukeCount: 0, footCount: 0, roachCount: 0,
       searching: 0,
       opponentFound: null,
       totalPlayers: 0, totalPlaying: 0,
@@ -115,7 +116,11 @@ export default class Main extends React.Component {
         const data = childSnapshot.val();
         // get the data of current user and keep the state updated
         if (key == user.uid) {
-          this.setState({ games: data.games, wins: data.wins, draws: data.draws, ratio: ((data.wins/(data.games-data.draws)) * 100).toFixed(2), statsLoaded: 1, });
+          this.setState({
+            games: data.games, wins: data.wins, draws: data.draws,
+            ratio: ((data.wins/(data.games-data.draws)) * 100).toFixed(2),
+            nukeCount: data.nukeCount, footCount: data.footCount, roachCount: data.roachCount,
+            statsLoaded: 1, });
         }
         // if user is playing, add him to the array and update the state
         if (data.playing == 1) {
@@ -200,14 +205,39 @@ export default class Main extends React.Component {
     this.stopSearching();
     const opponentFound = this.state.opponentFound;
     this.setState({ opponentFound: null });
-    this.props.navigation.navigate('Game', { data: opponentFound, resultDraw, resultLoss, resultNuke, resultWin });
+    this.props.navigation.navigate(
+      'Game', {
+        data: opponentFound,
+        resultDraw, resultLoss, resultNuke, resultWin,
+      }
+    );
   }
 
-  startGameAI = () => {
+  // start a game versus the easy difficulty computer version
+  startGameAiEasy = () => {
     this.stopSearching();
     const opponentFound = 'KrBjN2nl3NWalwU3OAJdnpaUC5k2';
     this.setState({ opponentFound: null });
-    this.props.navigation.navigate('Game', { data: opponentFound, resultDraw, resultLoss, resultNuke, resultWin });
+    this.props.navigation.navigate(
+      'Game', {
+        data: opponentFound,
+        resultDraw, resultLoss, resultNuke, resultWin,
+      }
+    );
+  }
+
+  // start a game versus the hard difficulty computer version
+  startGameAiHard = () => {
+    this.stopSearching();
+    const opponentFound = 'jQEUwYCq4dZzV3Q4TvraCLN6LNU2';
+    this.setState({ opponentFound: null });
+    this.props.navigation.navigate(
+      'Game', {
+        data: opponentFound,
+        resultDraw, resultLoss, resultNuke, resultWin,
+        nukeCount: this.state.nukeCount, footCount: this.state.footCount, roachCount: this.state.roachCount,
+      }
+    );
   }
 
   // clear input fields
@@ -268,10 +298,12 @@ export default class Main extends React.Component {
           <View style={styles.mainBottom}>
             <Text>There are {this.state.totalPlayers} registered players,</Text>
             <Text>and {this.state.totalPlaying} are in a game at the moment.</Text>
-            <Text> </Text>
-            <View>
-              <TouchableHighlight style={[styles.gameButton, styles.gameFoundButton]} onPress={this.startGameAI}>
-                <Text style={styles.actionText}>Play against the AI</Text>
+            <View style={styles.buttonContainer}>
+              <TouchableHighlight style={[styles.computerButton, styles.gameFoundButton]} onPress={this.startGameAiEasy}>
+                <Text style={styles.actionText}>Play vs AI Easy</Text>
+              </TouchableHighlight>
+              <TouchableHighlight style={[styles.computerButton, styles.gameFoundButton]} onPress={this.startGameAiHard}>
+                <Text style={styles.actionText}>Play vs AI Hard</Text>
               </TouchableHighlight>
             </View>
             <Text> </Text>

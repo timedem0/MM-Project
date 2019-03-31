@@ -3,7 +3,7 @@ import { Text, View, Image, TouchableHighlight } from 'react-native';
 import * as firebase from 'firebase';
 import Gyro from './Gyro';
 import { computeResult } from './Logic';
-import { getComputerChoice } from './Ai';
+import { aiEasy, aiHard } from './Ai';
 import { styles } from '../styles/Styles';
 
 export default class Game extends React.Component {
@@ -15,7 +15,7 @@ export default class Game extends React.Component {
       pTwoEmail: '', pTwoGames: 0, pTwoWins: 0, pTwoDraws: 0, pTwoChoice: '', pTwoRatio: 0,
       pOneNukeCount: 0, pOneFootCount: 0, pOneRoachCount: 0,
       pTwoPlaying: 0, gameEnded: 0, output: '',
-      nav: this.props.navigation, againstComputer: false,
+      nav: this.props.navigation, againstAi: false, aiVersion: null,
     };
   }
 
@@ -27,7 +27,20 @@ export default class Game extends React.Component {
     this.pOne = firebase.database().ref('/users/' + userOne.uid);
     this.pTwo = firebase.database().ref('/users/' + userTwo);
 
-    // start the listeners
+    // check if the game is against ai, and go to the appropiate listener body
+    if (userTwo == 'KrBjN2nl3NWalwU3OAJdnpaUC5k2') { // ai easy
+      this.setState({ againstAi: true, aiVersion: userTwo, });
+      this.getAiEasyChoice();
+      this.getAiOpponentData();
+    } else if (userTwo == 'jQEUwYCq4dZzV3Q4TvraCLN6LNU2') { // ai hard
+      this.setState({ againstAi: true, aiVersion: userTwo, });
+      this.getAiHardChoice();
+      this.getAiOpponentData();
+    } else {
+      this.getHumanOpponentData(); // human opponent
+    }
+
+    // start the player 1 listener
     this.getUsersData();
 
     // player 1 has joined a game
@@ -42,8 +55,8 @@ export default class Game extends React.Component {
     }
   }
 
+  // player 1 listener body
   getUsersData = () => {
-    // player 1 listener
     this.pOne.on('value', snapshot => {
       const pOneVal = snapshot.val();
       this.setState({
@@ -54,7 +67,23 @@ export default class Game extends React.Component {
         pOneChoice: pOneVal.choice, 
       });
     });
-    // player 2 listener
+  }
+
+  // human opponent listener body
+  getHumanOpponentData  = () => {
+    this.pTwo.on('value', snapshot => {
+      const pTwoVal = snapshot.val();
+      this.setState({
+        pTwoEmail: pTwoVal.email,
+        pTwoGames: pTwoVal.games, pTwoWins: pTwoVal.wins, pTwoDraws: pTwoVal.draws,
+        pTwoRatio: ((pTwoVal.wins/(pTwoVal.games-pTwoVal.draws)) * 100).toFixed(2),
+        pTwoPlaying: pTwoVal.playing, pTwoChoice: pTwoVal.choice,
+      });
+    });
+  }
+
+  // ai opponent listener body
+  getAiOpponentData  = () => {
     this.pTwo.on('value', snapshot => {
       const pTwoVal = snapshot.val();
       this.setState({
@@ -62,12 +91,6 @@ export default class Game extends React.Component {
         pTwoGames: pTwoVal.games, pTwoWins: pTwoVal.wins, pTwoDraws: pTwoVal.draws,
         pTwoRatio: ((pTwoVal.wins/(pTwoVal.games-pTwoVal.draws)) * 100).toFixed(2),
       });
-      // check if playing against computer or human opponents
-      if (snapshot.key == 'KrBjN2nl3NWalwU3OAJdnpaUC5k2') {
-        this.setState({ pTwoPlaying: 1, pTwoChoice: getComputerChoice(), againstComputer: true });
-      } else {
-        this.setState({ pTwoPlaying: pTwoVal.playing, pTwoChoice: pTwoVal.choice });
-      }
     });
   }
 
@@ -106,6 +129,26 @@ export default class Game extends React.Component {
       })
       .catch( error => console.warn(error) );
     this.endGame();
+  }
+
+  // get ai easy choice
+  getAiEasyChoice = async () => {
+    const aiChoice = await aiEasy();
+    this.setState({
+      pTwoPlaying: 1, pTwoChoice: aiChoice,
+    });
+  }
+
+  // get ai hard choice
+  getAiHardChoice = async () => {
+    const aiChoice = await aiHard(
+      this.state.nav.getParam('nukeCount', null),
+      this.state.nav.getParam('footCount', null),
+      this.state.nav.getParam('roachCount', null)
+    );
+    this.setState({
+      pTwoPlaying: 1, pTwoChoice: aiChoice,
+    });
   }
 
   // get the player 2 choice or keep trying, then calculate and update result
@@ -153,12 +196,13 @@ export default class Game extends React.Component {
           pTwoGames: this.state.pTwoGames + 1, pTwoRatio: ((this.state.pTwoWins/(this.state.pTwoGames + 1 - this.state.pTwoDraws)) * 100).toFixed(2),
         });
       }
-    }, 1500);
+    }, 1000);
   }
 
   // database update and maintenance for clean player exit from game
   leaveGame = () => {
     const userOne = firebase.auth().currentUser;
+    this.setState({ gameEnded: 1 });
     firebase
       .database()
       .ref('users/' + userOne.uid)
@@ -168,15 +212,15 @@ export default class Game extends React.Component {
       })
       .catch( error => console.warn(error) );
     // update the computer statistics, if necessary
-    if (this.state.againstComputer) {
+    if (this.state.againstAi) {
       firebase
         .database()
-        .ref('users/KrBjN2nl3NWalwU3OAJdnpaUC5k2')
+        .ref('users/' + this.state.aiVersion)
         .update({
           games: this.state.pTwoGames, wins: this.state.pTwoWins, draws: this.state.pTwoDraws,
         })
         .catch( error => console.warn(error) );
-      this.setState({ againstComputer: false });
+      this.setState({ againstAi: false, aiVersion: null, });
     }
     // back to main page
     this.props.navigation.navigate('Main');
