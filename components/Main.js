@@ -3,6 +3,7 @@ import { Text, TextInput, View, Keyboard, Image, TouchableHighlight, TouchableWi
 import { Audio } from 'expo';
 import * as firebase from 'firebase';
 import { styles } from '../styles/Styles';
+import Footer from './Footer';
 
 export default class Main extends React.Component {
 
@@ -346,7 +347,6 @@ export default class Main extends React.Component {
       return (
         <TouchableWithoutFeedback onPress={ () => Keyboard.dismiss() }>
           <View style={styles.container}>
-            <Text style={styles.pageText}>Enter Your Account Details</Text>
             <View style={styles.inputContainer}>
               <TextInput
                 placeholder="Email"
@@ -374,12 +374,17 @@ export default class Main extends React.Component {
                 <Text style={styles.actionText}>Log In</Text>
               </TouchableHighlight>
             </View>
-            <View style={styles.errorContainer}>
-              {this.state.errorMessage &&
-                <Text style={{ color: 'red' }}>
-                  {this.state.errorMessage}
-                </Text>}
+            <View style={styles.infoContainer}>
+              { this.state.errorMessage
+                ? <View style={styles.errorContainer}>
+                    <Text style={{ color: 'red' }}>
+                    {this.state.errorMessage}
+                    </Text>
+                  </View>
+                : <Text> </Text>
+              }
             </View>
+            <Footer />
           </View>
         </TouchableWithoutFeedback>
       )

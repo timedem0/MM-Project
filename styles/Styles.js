@@ -98,6 +98,11 @@ export const styles = StyleSheet.create({
     color: 'white',
   },
 
+  infoContainer: {
+    marginTop: 10,
+    height: 15,
+  },
+
   errorContainer: {
     backgroundColor: 'rgba(0,0,0,.05)',
     marginTop: 10,
@@ -185,6 +190,24 @@ export const styles = StyleSheet.create({
 
   activity: {
     marginTop: 8,
+  },
+
+  footer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+
+  option: {
+    // backgroundColor: '#fdfdfd',
+    // paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'black',
+  },
+
+  optionText: {
+    fontSize: 16,
+    marginTop: 1,
   },
 
 });
