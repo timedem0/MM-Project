@@ -198,8 +198,6 @@ export const styles = StyleSheet.create({
   },
 
   option: {
-    // backgroundColor: '#fdfdfd',
-    // paddingHorizontal: 15,
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'black',

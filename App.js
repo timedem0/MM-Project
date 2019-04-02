@@ -1,5 +1,6 @@
 import React from 'react';
 import { InteractionManager } from 'react-native';
+import { Font, Icon, Audio, AppLoading } from 'expo';
 import { createAppContainer, createStackNavigator } from 'react-navigation';
 import * as firebase from 'firebase';
 import { firebaseConfig } from './MyKeys';
@@ -10,31 +11,70 @@ firebase.initializeApp(firebaseConfig);
 
 export default class App extends React.Component {
 
+  state = { isReady: false, };
+
+  cacheResourcesAsync = async () => {
+    
+    // load the sounds and assign them to variables
+    try {
+      await gameFound.loadAsync(require('./assets/sounds/game_found.wav'));
+      await resultDraw.loadAsync(require('./assets/sounds/result_draw.wav'));
+      await resultLoss.loadAsync(require('./assets/sounds/result_loss.wav'));
+      await resultNuke.loadAsync(require('./assets/sounds/result_nuke.wav'));
+      await resultWin.loadAsync(require('./assets/sounds/result_win.wav'));  
+    } catch (error) {
+      console.warn(error);
+    };
+
+    // load the iconset
+    return Promise.all([
+      Font.loadAsync({
+        ...Icon.Feather.font,
+      }),
+    ]);
+  };
+
   render() {
-    return <AppContainer />;
+
+    if (!this.state.isReady) {
+
+      return (
+        <AppLoading
+          startAsync = {this.cacheResourcesAsync}
+          onFinish = {() => this.setState({ isReady: true })}
+          onError = {console.warn}
+        />
+      );
+
+    } else {
+
+      const MyApp = createStackNavigator({
+          Main: { screen: Main, params: { gameFound, } },
+          Game: { screen: Game, params: { resultDraw, resultLoss, resultNuke, resultWin, } },
+        }, {
+          initialRouteName: 'Main',
+          defaultNavigationOptions: {
+            headerStyle: { backgroundColor: '#00635C', },
+            headerTintColor: '#fff',
+          },
+        },
+      );
+
+      const AppContainer = createAppContainer(MyApp);
+      
+      return <AppContainer />;
+    }
   }
 }
 
-const MyApp = createStackNavigator(
-  { 
-    Main,
-    Game,
-  }, {
-    initialRouteName: 'Main',
-    defaultNavigationOptions: {
-      headerStyle: {
-        backgroundColor: '#00635C',
-      },
-      headerTintColor: '#fff',
-      headerTitleStyle: {
-      },
-    },
-  },
-);
+// sound containers
+const gameFound = new Audio.Sound();
+const resultDraw = new Audio.Sound();
+const resultLoss = new Audio.Sound();
+const resultNuke = new Audio.Sound();
+const resultWin = new Audio.Sound();
 
-const AppContainer = createAppContainer(MyApp);
-
-// Work around issue `Setting a timer for long time`
+// workaround issue `Setting a timer for long time`
 // see: https://github.com/firebase/firebase-js-sdk/issues/97
 
 const _setTimeout = global.setTimeout;

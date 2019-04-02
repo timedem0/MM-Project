@@ -1,6 +1,5 @@
 import React from 'react';
 import { Text, TextInput, View, Keyboard, Image, TouchableHighlight, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
-import { Audio } from 'expo';
 import * as firebase from 'firebase';
 import { styles } from '../styles/Styles';
 import Footer from './Footer';
@@ -20,6 +19,7 @@ export default class Main extends React.Component {
       opponentFound: null,
       totalPlayers: 0, totalPlaying: 0,
       statsLoaded: 0,
+      nav: this.props.navigation,
     };
   }
 
@@ -37,9 +37,6 @@ export default class Main extends React.Component {
           this.queryDatabase(user);
         }
     });
-
-    // prefetch the sounds
-    this.loadSounds();
   }
 
   // navbar maintenance
@@ -47,19 +44,6 @@ export default class Main extends React.Component {
     return {
       title: 'Mobile Multiplayer Project',
       headerLeft: null,
-    }
-  }
-
-  // async function to pre-load the sounds
-  loadSounds = async () => {
-    try {
-      await gameFound.loadAsync(require('../assets/sounds/game_found.wav'));
-      await resultDraw.loadAsync(require('../assets/sounds/result_draw.wav'));
-      await resultLoss.loadAsync(require('../assets/sounds/result_loss.wav'));
-      await resultNuke.loadAsync(require('../assets/sounds/result_nuke.wav'));
-      await resultWin.loadAsync(require('../assets/sounds/result_win.wav'));  
-    } catch (error) {
-      console.warn(error);
     }
   }
 
@@ -166,6 +150,9 @@ export default class Main extends React.Component {
 
   // find an opponent
   findGame = (user) => {
+    // fetch the pre-loaded sound
+    const gameFound = this.state.nav.getParam('gameFound', null);
+    // initiate the array that contains users searching for a game
     let searchingUsersArray = [];
     // initiate the try cycle
     let timerId = setInterval(() => {
@@ -191,7 +178,7 @@ export default class Main extends React.Component {
         .catch( error => console.warn(error) );
         if (searchingUsersArray.length > 0) {
           // stop the cycle, extract a random opponent from the array and update the state
-          clearInterval(timerId);
+          clearInterval(timerId); 
           const item = searchingUsersArray[Math.floor(Math.random()*searchingUsersArray.length)];
           this.setState({ opponentFound: item });
           gameFound.setPositionAsync(0);
@@ -207,10 +194,7 @@ export default class Main extends React.Component {
     const opponentFound = this.state.opponentFound;
     this.setState({ opponentFound: null });
     this.props.navigation.navigate(
-      'Game', {
-        data: opponentFound,
-        resultDraw, resultLoss, resultNuke, resultWin,
-      }
+      'Game', { data: opponentFound, }
     );
   }
 
@@ -220,10 +204,7 @@ export default class Main extends React.Component {
     const opponentFound = 'KrBjN2nl3NWalwU3OAJdnpaUC5k2';
     this.setState({ opponentFound: null });
     this.props.navigation.navigate(
-      'Game', {
-        data: opponentFound,
-        resultDraw, resultLoss, resultNuke, resultWin,
-      }
+      'Game', { data: opponentFound, }
     );
   }
 
@@ -235,7 +216,6 @@ export default class Main extends React.Component {
     this.props.navigation.navigate(
       'Game', {
         data: opponentFound,
-        resultDraw, resultLoss, resultNuke, resultWin,
         nukeCount: this.state.nukeCount, footCount: this.state.footCount, roachCount: this.state.roachCount,
       }
     );
@@ -310,7 +290,7 @@ export default class Main extends React.Component {
             <Text> </Text>
             { opponentFound
               ? <View style={{ alignItems: 'center' }}>
-                  <TouchableHighlight style={[styles.gameButton, styles.gameFoundButton]} onPress={this.startGame}>
+                  <TouchableHighlight style={[styles.gameButton, styles.searchStartButton]} onPress={this.startGame}>
                     <Text style={styles.actionText}>Start the Game!</Text>
                   </TouchableHighlight>
                   <View style={styles.errorContainer}>
@@ -391,9 +371,3 @@ export default class Main extends React.Component {
     }
   }
 }
-
-const gameFound = new Audio.Sound();
-const resultDraw = new Audio.Sound();
-const resultLoss = new Audio.Sound();
-const resultNuke = new Audio.Sound();
-const resultWin = new Audio.Sound();
