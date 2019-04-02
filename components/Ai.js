@@ -31,15 +31,37 @@ export function aiHard(nukeCount, footCount, roachCount) {
   // sort the array
   ratioArray.sort((a, b) => a.value - b.value);
 
+  // ai throws a die
+  const rnd = Math.random();
+
   // calculate the AI choice (biased choice based on player history with random element)
-  if (ratioArray[2].name == 'Nuke') {
-    choice = 'Roach';
-  } else if (ratioArray[2].name == 'Foot') {
-    choice = 'Nuke';
-  } else if (ratioArray[2].name == 'Roach') {
-    choice = 'Foot';
+  if (rnd < ratioArray[0].value) {
+    // lowest chance to happen
+    if (ratioArray[0].name == 'Nuke') {
+      choice = 'Roach';
+    } else if (ratioArray[0].name == 'Foot') {
+      choice = 'Nuke';
+    } else if (ratioArray[0].name == 'Roach') {
+      choice = 'Foot';
+    };
+  } else if (rnd < ratioArray[1].value) {
+    // medium chance to happen
+    if (ratioArray[1].name == 'Nuke') {
+      choice = 'Roach';
+    } else if (ratioArray[1].name == 'Foot') {
+      choice = 'Nuke';
+    } else if (ratioArray[1].name == 'Roach') {
+      choice = 'Foot';
+    };
   } else {
-    console.warn('Ai malfunction');
+    // highest chance to happen, preferred choice
+    if (ratioArray[2].name == 'Nuke') {
+      choice = 'Roach';
+    } else if (ratioArray[2].name == 'Foot') {
+      choice = 'Nuke';
+    } else if (ratioArray[2].name == 'Roach') {
+      choice = 'Foot';
+    };
   };
 
   return choice;
