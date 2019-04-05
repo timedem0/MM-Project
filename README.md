@@ -1,5 +1,9 @@
 ## Mobile-Multiplayer-Project
 
+### Download
+
+The app is published on the Expo platform at [expo.io/@timedemo/mm-project](https://expo.io/@timedemo/mm-project). You can use it by scanning the QR-code with your own Expo app.
+
 ### Description
 
 A mobile mini-game of Rock-Paper-Scissors in a multi-player environment.
